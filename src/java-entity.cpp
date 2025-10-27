@@ -209,21 +209,21 @@ public:
     return id == u8"minecraft:item_frame" || id == u8"minecraft:glow_item_frame";
   }
 
-  static std::optional<Entity::LocalPlayerResult> LocalPlayer(CompoundTag const &tag, Context &ctx, DataVersion const &dataVersion, std::set<Flag> flags) {
+  static std::optional<Entity::LocalPlayerResult> LocalPlayer(CompoundTag const &j, Context &ctx, DataVersion const &dataVersion, std::set<Flag> flags) {
     using namespace std;
     using namespace mcfile;
 
     ConverterContext cctx(ctx, dataVersion, flags);
-    auto entity = LivingEntity(tag, cctx);
+    auto entity = LivingEntity(j, cctx);
     if (!entity) {
       return nullopt;
     }
-    auto uuid = GetEntityUuid(tag, cctx);
+    auto uuid = GetEntityUuid(j, cctx);
     if (!uuid) {
       return nullopt;
     }
 
-    auto pos = props::GetPos3d(tag, u8"Pos");
+    auto pos = props::GetPos3d(j, u8"Pos");
     if (!pos) {
       return nullopt;
     }
@@ -231,7 +231,7 @@ public:
     // ng 1.620001f
     // ok 1.62001f
     double y = pos->fY + 1.62001;
-    if (auto rootVehicle = tag.compoundTag(u8"RootVehicle"); rootVehicle) {
+    if (auto rootVehicle = j.compoundTag(u8"RootVehicle"); rootVehicle) {
       if (auto vehicleEntity = rootVehicle->compoundTag(u8"Entity"); vehicleEntity) {
         if (auto vehicleRawId = vehicleEntity->string(u8"id"); vehicleRawId) {
           auto vehicleId = MigrateName(*vehicleRawId);
@@ -266,12 +266,12 @@ public:
     entity->erase(u8"LoveCause");
     entity->erase(u8"limitedLife");
 
-    CopyIntValues(tag, *entity, {{u8"SelectedItemSlot", u8"SelectedInventorySlot"}, {u8"XpSeed", u8"EnchantmentSeed"}, {u8"PortalCooldown"}});
-    CopyFloatValues(tag, *entity, {{u8"XpP", u8"PlayerLevelProgress"}});
-    CopyBoolValues(tag, *entity, {{u8"seenCredits", u8"HasSeenCredits"}});
+    CopyIntValues(j, *entity, {{u8"SelectedItemSlot", u8"SelectedInventorySlot"}, {u8"XpSeed", u8"EnchantmentSeed"}, {u8"PortalCooldown"}});
+    CopyFloatValues(j, *entity, {{u8"XpP", u8"PlayerLevelProgress"}});
+    CopyBoolValues(j, *entity, {{u8"seenCredits", u8"HasSeenCredits"}});
 
     GameMode gameType = ctx.fGameType;
-    if (auto playerGameTypeJ = tag.int32(u8"playerGameType"); playerGameTypeJ) {
+    if (auto playerGameTypeJ = j.int32(u8"playerGameType"); playerGameTypeJ) {
       if (auto type = GameModeFromJava(*playerGameTypeJ); type) {
         gameType = *type;
       }
@@ -279,7 +279,7 @@ public:
     entity->set(u8"PlayerGameMode", Int(BedrockFromGameMode(gameType)));
     entity->set(u8"SelectedContainerId", Int(0));
 
-    auto inventory = tag.listTag(u8"Inventory");
+    auto inventory = j.listTag(u8"Inventory");
     if (inventory) {
       auto outInventory = ConvertAnyItemList(inventory, 36, ctx, dataVersion);
       entity->set(u8"Inventory", outInventory);
@@ -328,13 +328,13 @@ public:
       }
     }
 
-    auto enderItems = tag.listTag(u8"EnderItems");
+    auto enderItems = j.listTag(u8"EnderItems");
     if (enderItems) {
       auto enderChestInventory = ConvertAnyItemList(enderItems, 27, ctx, dataVersion);
       entity->set(u8"EnderChestInventory", enderChestInventory);
     }
 
-    auto abilities = tag.compoundTag(u8"abilities");
+    auto abilities = j.compoundTag(u8"abilities");
     if (abilities) {
       auto converted = PlayerAbilities::Import(*abilities);
       if (ctx.fAllowCommand) {
@@ -344,26 +344,45 @@ public:
       entity->set(u8"abilities", converted.toCompoundTag());
     }
 
-    auto spawnX = tag.int32(u8"SpawnX");
-    auto spawnY = tag.int32(u8"SpawnY");
-    auto spawnZ = tag.int32(u8"SpawnZ");
-    auto spawnDimensionString = tag.string(u8"SpawnDimension");
-    std::optional<mcfile::Dimension> spawnDimension;
-    if (spawnDimensionString) {
-      spawnDimension = DimensionFromJavaString(*spawnDimensionString);
-    }
-    if (spawnX && spawnY && spawnZ && spawnDimension) {
-      entity->set(u8"SpawnX", Int(*spawnX));
-      entity->set(u8"SpawnY", Int(*spawnY));
-      entity->set(u8"SpawnZ", Int(*spawnZ));
-      int dimension = BedrockDimensionFromDimension(*spawnDimension);
-      entity->set(u8"SpawnDimension", Int(dimension));
-      entity->set(u8"SpawnBlockPositionX", Int(*spawnX));
-      entity->set(u8"SpawnBlockPositionY", Int(*spawnY));
-      entity->set(u8"SpawnBlockPositionZ", Int(*spawnZ));
+    if (auto respawn = j.compoundTag(u8"respawn"); respawn) {
+      int dimensionB = BedrockDimensionFromDimension(Dimension::Overworld);
+      if (auto dimensionJ = respawn->string(u8"dimension"); dimensionJ) {
+        if (auto dim = DimensionFromJavaString(*dimensionJ); dim) {
+          dimensionB = BedrockDimensionFromDimension(*dim);
+        }
+      }
+      auto pos = props::GetPos3iFromIntArrayTag(*respawn, u8"pos");
+      if (pos) {
+        entity->set(u8"SpawnX", Int(pos->fX));
+        entity->set(u8"SpawnY", Int(pos->fY));
+        entity->set(u8"SpawnZ", Int(pos->fZ));
+        entity->set(u8"SpawnDimension", Int(dimensionB));
+        entity->set(u8"SpawnBlockPositionX", Int(pos->fX));
+        entity->set(u8"SpawnBlockPositionY", Int(pos->fY));
+        entity->set(u8"SpawnBlockPositionZ", Int(pos->fZ));
+      }
+    } else {
+      auto spawnX = j.int32(u8"SpawnX");
+      auto spawnY = j.int32(u8"SpawnY");
+      auto spawnZ = j.int32(u8"SpawnZ");
+      auto spawnDimensionString = j.string(u8"SpawnDimension");
+      std::optional<mcfile::Dimension> spawnDimension;
+      if (spawnDimensionString) {
+        spawnDimension = DimensionFromJavaString(*spawnDimensionString);
+      }
+      if (spawnX && spawnY && spawnZ && spawnDimension) {
+        entity->set(u8"SpawnX", Int(*spawnX));
+        entity->set(u8"SpawnY", Int(*spawnY));
+        entity->set(u8"SpawnZ", Int(*spawnZ));
+        int dimension = BedrockDimensionFromDimension(*spawnDimension);
+        entity->set(u8"SpawnDimension", Int(dimension));
+        entity->set(u8"SpawnBlockPositionX", Int(*spawnX));
+        entity->set(u8"SpawnBlockPositionY", Int(*spawnY));
+        entity->set(u8"SpawnBlockPositionZ", Int(*spawnZ));
+      }
     }
 
-    auto dimensionString = tag.string(u8"Dimension");
+    auto dimensionString = j.string(u8"Dimension");
     mcfile::Dimension dim = mcfile::Dimension::Overworld;
     if (dimensionString) {
       auto dimension = DimensionFromJavaString(*dimensionString);
@@ -378,37 +397,37 @@ public:
     definitions->push_back(String(u8"+"));
     entity->set(u8"definitions", definitions);
 
-    auto xpLevel = tag.int32(u8"XpLevel", 0);
+    auto xpLevel = j.int32(u8"XpLevel", 0);
     entity->set(u8"PlayerLevel", Int(xpLevel));
 
-    auto attrs = EntityAttributes::Player(tag.float32(u8"Health"));
+    auto attrs = EntityAttributes::Player(j.float32(u8"Health"));
     auto attrsTag = attrs.toBedrockListTag();
-    if (auto xpTotal = tag.int32(u8"XpTotal"); xpTotal) {
+    if (auto xpTotal = j.int32(u8"XpTotal"); xpTotal) {
       EntityAttributes::Attribute level(*xpTotal, xpLevel, 24791);
       attrsTag->push_back(level.toBedrockCompoundTag(u8"player.level"));
     }
-    if (auto foodExhaustionLevel = tag.float32(u8"foodExhaustionLevel"); foodExhaustionLevel) {
+    if (auto foodExhaustionLevel = j.float32(u8"foodExhaustionLevel"); foodExhaustionLevel) {
       EntityAttributes::Attribute exhaustion(0, *foodExhaustionLevel, 4);
       attrsTag->push_back(exhaustion.toBedrockCompoundTag(u8"player.exhaustion"));
     }
-    if (auto foodLevel = tag.int32(u8"foodLevel"); foodLevel) {
+    if (auto foodLevel = j.int32(u8"foodLevel"); foodLevel) {
       EntityAttributes::Attribute hunger(20, *foodLevel, 20);
       attrsTag->push_back(hunger.toBedrockCompoundTag(u8"player.hunger"));
     }
-    if (auto foodSaturatonLevel = tag.float32(u8"foodSaturationLevel"); foodSaturatonLevel) {
+    if (auto foodSaturatonLevel = j.float32(u8"foodSaturationLevel"); foodSaturatonLevel) {
       EntityAttributes::Attribute saturation(20, *foodSaturatonLevel, 20);
       attrsTag->push_back(saturation.toBedrockCompoundTag(u8"player.saturation"));
     }
     entity->set(u8"Attributes", attrsTag);
 
-    CopyShortValues(tag, *entity, {{u8"SleepTimer"}});
+    CopyShortValues(j, *entity, {{u8"SleepTimer"}});
 
-    if (auto wardenSpawnTracker = tag.compoundTag(u8"warden_spawn_tracker"); wardenSpawnTracker) {
+    if (auto wardenSpawnTracker = j.compoundTag(u8"warden_spawn_tracker"); wardenSpawnTracker) {
       CopyIntValues(*wardenSpawnTracker, *entity, {{u8"cooldown_ticks", u8"WardenThreatLevelIncreaseCooldown"}, {u8"ticks_since_last_warning", u8"WardenThreatDecreaseTimer"}, {u8"warning_level", u8"WardenThreatLevel"}});
     }
 
     bool hasDiedBefore = false;
-    if (auto lastDeathLocation = tag.compoundTag(u8"LastDeathLocation"); lastDeathLocation) {
+    if (auto lastDeathLocation = j.compoundTag(u8"LastDeathLocation"); lastDeathLocation) {
       if (auto lastDeathDimensionString = lastDeathLocation->string(u8"dimension"); lastDeathDimensionString) {
         auto lastDeathDimension = DimensionFromJavaString(*lastDeathDimensionString);
         auto p = props::GetPos3iFromIntArrayTag(*lastDeathLocation, u8"pos");

@@ -2246,7 +2246,7 @@ public:
     CopyChestItems(b, u8"Inventory", j, u8"Inventory", ctx, true, dataVersion);
     InjectArmorAndOffhand(b, j, ctx, dataVersion);
 
-    CopyIntValues(b, j, {{u8"SelectedInventorySlot", u8"SelectedItemSlot"}, {u8"PlayerLevel", u8"XpLevel"}, {u8"EnchantmentSeed", u8"XpSeed"}, {u8"SpawnX"}, {u8"SpawnY"}, {u8"SpawnZ"}});
+    CopyIntValues(b, j, {{u8"SelectedInventorySlot", u8"SelectedItemSlot"}, {u8"PlayerLevel", u8"XpLevel"}, {u8"EnchantmentSeed", u8"XpSeed"}});
     CopyShortValues(b, j, {{u8"SleepTimer"}});
     CopyFloatValues(b, j, {{u8"PlayerLevelProgress", u8"XpP"}});
     CopyBoolValues(b, j, {{u8"HasSeenCredits", u8"seenCredits"}});
@@ -2268,9 +2268,32 @@ public:
     }
 
     auto spawnDimensionB = b.int32(u8"SpawnDimension");
-    if (spawnDimensionB) {
-      if (auto dimension = DimensionFromBedrockDimension(*spawnDimensionB); dimension) {
-        j[u8"SpawnDimension"] = String(JavaStringFromDimension(*dimension));
+    auto spawnBlockPositionX = b.int32(u8"SpawnBlockPositionX");
+    auto spawnBlockPositionY = b.int32(u8"SpawnBlockPositionY");
+    auto spawnBlockPositionZ = b.int32(u8"SpawnBlockPositionZ");
+    if (dataVersion >= (int)JavaDataVersions::Snapshot25w07a) {
+      auto respawnJ = Compound();
+      if (spawnDimensionB) {
+        if (auto dimension = DimensionFromBedrockDimension(*spawnDimensionB); dimension && *dimension != mcfile::Dimension::Overworld) {
+          respawnJ->set(u8"dimension", String(JavaStringFromDimension(*dimension)));
+        }
+      }
+      if (spawnBlockPositionX && spawnBlockPositionY && spawnBlockPositionZ) {
+        respawnJ->set(u8"pos", IntArrayFromPos3i(Pos3i(*spawnBlockPositionX, *spawnBlockPositionY, *spawnBlockPositionZ)));
+      }
+      if (!respawnJ->empty()) {
+        j[u8"respawn"] = respawnJ;
+      }
+    } else {
+      if (spawnDimensionB) {
+        if (auto dimension = DimensionFromBedrockDimension(*spawnDimensionB); dimension) {
+          j[u8"SpawnDimension"] = String(JavaStringFromDimension(*dimension));
+        }
+      }
+      if (spawnBlockPositionX && spawnBlockPositionY && spawnBlockPositionZ) {
+        j[u8"SpawnX"] = Int(*spawnBlockPositionX);
+        j[u8"SpawnY"] = Int(*spawnBlockPositionY);
+        j[u8"SpawnZ"] = Int(*spawnBlockPositionZ);
       }
     }
 
