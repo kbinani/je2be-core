@@ -746,7 +746,7 @@ public:
   static void Door(CompoundTagPtr const &s, Block const &block, Options const &o) {
     auto upper = s->boolean(u8"upper_block_bit", false);
     if (upper) {
-      s->set(u8"direction", Int(0));
+      s->set(u8"minecraft:cardinal_direction", String(u8"south"));
       s->set(u8"open_bit", Bool(false));
     } else {
       s->set(u8"door_hinge_bit", Bool(false));
@@ -1628,8 +1628,8 @@ public:
     E(dropper, Converter(Same, FacingDirectionAFromFacingByItemDefault(3), Name(Triggered, u8"triggered_bit")));
     E(observer, Converter(Same, Name(Facing, u8"minecraft:facing_direction"), Name(Powered, u8"powered_bit")));
 
-    Converter door(Same, DirectionFromFacingC, Name(Open, u8"open_bit"), UpperBlockBitToHalf, DoorHingeBitFromHinge, Door);
-    E(oak_door, Converter(Name(u8"wooden_door"), DirectionFromFacingC, Name(Open, u8"open_bit"), UpperBlockBitToHalf, DoorHingeBitFromHinge, Door));
+    Converter door(Same, CardinalDirectionFromFacing4, Name(Open, u8"open_bit"), UpperBlockBitToHalf, DoorHingeBitFromHinge, Door);
+    E(oak_door, Converter(Name(u8"wooden_door"), CardinalDirectionFromFacing4, Name(Open, u8"open_bit"), UpperBlockBitToHalf, DoorHingeBitFromHinge, Door));
     E(iron_door, door);
     E(spruce_door, door);
     E(birch_door, door);

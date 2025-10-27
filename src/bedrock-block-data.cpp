@@ -668,7 +668,7 @@ private:
   static String Door(String const &bName, CompoundTag const &s, Props &p) {
     auto doorHingeBit = s.boolean(u8"door_hinge_bit", false);
     OpenFromOpenBit(s, p);
-    FacingCFromDirection(s, p);
+    FacingFromCardinalDirectionMigratingDirectionNorth3East0South1West2(s, p);
     HalfFromUpperBlockBit(s, p);
     p[u8"hinge"] = doorHingeBit ? u8"right" : u8"left";
     p[u8"powered"] = u8"false";
@@ -1900,6 +1900,14 @@ private:
     }
   }
 
+  static void FacingFromCardinalDirectionMigratingDirectionNorth3East0South1West2(CompoundTag const &s, Props &props) {
+    if (auto cd = s.string(u8"minecraft:cardinal_direction"); cd) {
+      props[u8"facing"] = *cd;
+    } else {
+      Facing4FromNorth3East0South1West2(s, props);
+    }
+  }
+
   static void Facing6FromFacingDirectionA(CompoundTag const &s, Props &props) {
     auto facingDirection = s.int32(u8"facing_direction", 0);
     Facing6 f6 = Facing6FromBedrockFacingDirectionA(facingDirection);
@@ -1995,7 +2003,7 @@ private:
     props[u8"facing"] = facing;
   }
 
-  static void FacingCFromDirection(CompoundTag const &s, Props &props) {
+  static void Facing4FromNorth3East0South1West2(CompoundTag const &s, Props &props) {
     auto direction = s.int32(u8"direction", 0);
     std::u8string facing;
     switch (direction) {
