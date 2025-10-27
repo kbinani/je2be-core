@@ -1785,7 +1785,7 @@ public:
     E(light, Light);
     E(cave_vines, CaveVines);
     E(cave_vines_plant, CaveVinesPlant);
-    E(chain, axisToPillarAxis);
+    E(chain, Chain);
 
     E(bamboo_sapling, sapling);
     E(brewing_stand, BrewingStand);
@@ -2375,6 +2375,13 @@ public:
       i = std::clamp(*num, 1, 4) - 1;
     }
     return Int(i);
+  }
+
+  static CompoundTagPtr Chain(Block const &b, CompoundTagConstPtr const &, Options const &o) {
+    auto c = New(u8"iron_chain");
+    auto s = States();
+    AxisToPillarAxis(s, b, o);
+    return AttachStates(c, s);
   }
 
   static CompoundTagPtr Light(Block const &b, CompoundTagConstPtr const &, Options const &o) {

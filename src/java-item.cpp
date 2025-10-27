@@ -177,6 +177,8 @@ private:
     E(creeper_head, DefaultItem);
     E(dragon_head, DefaultItem);
     E(piglin_head, DefaultItem);
+
+    E(chain, Rename(u8"iron_chain"));
 #undef E
     return table;
   }
@@ -561,7 +563,6 @@ private:
     E(item_frame, Rename(u8"frame"));
     E(glow_item_frame, Rename(u8"glow_frame"));
     E(raw_copper, DefaultItem);
-    E(chain, DefaultItem);
 
     E(oak_boat, DefaultItem);
     E(birch_boat, DefaultItem);

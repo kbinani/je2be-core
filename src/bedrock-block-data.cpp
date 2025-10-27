@@ -461,7 +461,7 @@ private:
   static String Chain(String const &bName, CompoundTag const &s, Props &p) {
     AxisFromPillarAxis(s, p);
     Submergible(s, p);
-    return bName;
+    return Ns() + u8"chain";
   }
 
   static String ChiseledBookshelf(String const &bName, CompoundTag const &s, Props &p) {
@@ -2788,7 +2788,8 @@ private:
     E(cave_vines_with_berries, CaveVines);
     E(cave_vines_head_with_berries, CaveVines);
     E(cave_vines_body_with_berries, CaveVinesBody);
-    E(chain, Chain);
+    E(chain, Chain); // legacy
+    E(iron_chain, Chain);
     E(chain_command_block, CommandBlock);
     E(command_block, CommandBlock);
     E(chest, BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible);

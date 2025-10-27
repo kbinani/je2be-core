@@ -1245,6 +1245,8 @@ public:
     E(magenta_bundle, Bundle);
     E(pink_bundle, Bundle);
     E(normal_stone_slab, Rename(u8"stone_slab"));
+
+    E(iron_chain, Rename(u8"chain"));
 #undef E
     return ret;
   }
