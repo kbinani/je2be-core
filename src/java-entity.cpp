@@ -1944,57 +1944,17 @@ private:
 #pragma endregion
 
 #pragma region Converters
-  static CompoundTagPtr Animal(CompoundTag const &tag, ConverterContext &ctx) {
-    auto c = Mob(tag, ctx);
-    if (!c) {
+  static CompoundTagPtr Animal(CompoundTag const &j, ConverterContext &ctx) {
+    auto b = Mob(j, ctx);
+    if (!b) {
       return nullptr;
     }
 
-    c->set(u8"Persistent", Bool(true));
+    b->set(u8"Persistent", Bool(true));
 
-    if (auto leashIntArray = tag.intArrayTag(u8"leash"); leashIntArray && leashIntArray->fValue.size() == 3) {
-      // java 1.20.5 or later
-      auto x = leashIntArray->fValue[0];
-      auto y = leashIntArray->fValue[1];
-      auto z = leashIntArray->fValue[2];
-      auto leashedUuid = GetEntityUuid(tag, ctx);
-      i64 leasherId = ctx.fCtx.fUuids->leasherIdFor(*leashedUuid);
+    Leash(j, *b, ctx);
 
-      Rep e(leasherId);
-      e.fPos = Pos3f(x + 0.5f, y + 0.25f, z + 0.5f);
-      e.fIdentifier = u8"minecraft:leash_knot";
-      auto leashEntityData = e.toCompoundTag();
-      int cx = mcfile::Coordinate::ChunkFromBlock(x);
-      int cz = mcfile::Coordinate::ChunkFromBlock(z);
-      ctx.fLeashKnots[{cx, cz}].push_back(leashEntityData);
-
-      c->set(u8"LeasherID", Long(leasherId));
-    } else if (auto leashCompound = FallbackPtr<CompoundTag>(tag, {u8"leash", u8"Leash"}); leashCompound) {
-      if (auto leasherUuid = props::GetUuid(*leashCompound, {.fIntArray = u8"UUID"}); leasherUuid) {
-        auto leasherUuidB = ctx.fCtx.fUuids->toId(*leasherUuid);
-        c->set(u8"LeasherID", Long(leasherUuidB));
-      } else {
-        auto x = leashCompound->int32(u8"X");
-        auto y = leashCompound->int32(u8"Y");
-        auto z = leashCompound->int32(u8"Z");
-        if (x && y && z) {
-          auto leashedUuid = GetEntityUuid(tag, ctx);
-          i64 leasherId = ctx.fCtx.fUuids->leasherIdFor(*leashedUuid);
-
-          Rep e(leasherId);
-          e.fPos = Pos3f(*x + 0.5f, *y + 0.25f, *z + 0.5f);
-          e.fIdentifier = u8"minecraft:leash_knot";
-          auto leashEntityData = e.toCompoundTag();
-          int cx = mcfile::Coordinate::ChunkFromBlock(*x);
-          int cz = mcfile::Coordinate::ChunkFromBlock(*z);
-          ctx.fLeashKnots[{cx, cz}].push_back(leashEntityData);
-
-          c->set(u8"LeasherID", Long(leasherId));
-        }
-      }
-    }
-
-    return c;
+    return b;
   }
 
   static CompoundTagPtr Default(CompoundTag const &tag, ConverterContext const &ctx) {
@@ -2350,26 +2310,28 @@ private:
     };
   }
 
-  static void ConvertBoat(CompoundTag &c, CompoundTag const &tag, ConverterContext &, std::u8string const &definitionKey, std::u8string const &woodType) {
+  static void ConvertBoat(CompoundTag &b, CompoundTag const &j, ConverterContext &ctx, std::u8string const &definitionKey, std::u8string const &woodType) {
     i32 variant = Boat::BedrockVariantFromJavaType(woodType);
-    c[u8"Variant"] = Int(variant);
+    b[u8"Variant"] = Int(variant);
 
-    AddDefinition(c, u8"+minecraft:" + definitionKey);
-    AddDefinition(c, u8"+");
+    AddDefinition(b, u8"+minecraft:" + definitionKey);
+    AddDefinition(b, u8"+");
     if (woodType == u8"bamboo") {
-      AddDefinition(c, u8"+minecraft:can_ride_bamboo");
+      AddDefinition(b, u8"+minecraft:can_ride_bamboo");
     } else {
-      AddDefinition(c, u8"+minecraft:can_ride_default");
+      AddDefinition(b, u8"+minecraft:can_ride_default");
     }
 
-    auto rotation = props::GetRotation(c, u8"Rotation");
+    auto rotation = props::GetRotation(b, u8"Rotation");
     if (rotation) {
       Rotation rot(Rotation::ClampDegreesBetweenMinus180And180(rotation->fYaw + 90), rotation->fPitch);
-      c[u8"Rotation"] = rot.toListTag();
+      b[u8"Rotation"] = rot.toListTag();
     }
 
-    auto pos = GetBoatPos(tag);
-    c[u8"Pos"] = pos->toF().toListTag();
+    auto pos = GetBoatPos(j);
+    b[u8"Pos"] = pos->toF().toListTag();
+
+    Leash(j, b, ctx);
   }
 
   static Behavior TypedBoat(std::u8string const &definitionKey, std::u8string const &woodType) {
@@ -2651,6 +2613,50 @@ private:
 #pragma endregion
 
 #pragma region Utilities
+  static void Leash(CompoundTag const &j, CompoundTag &b, ConverterContext &ctx) {
+    if (auto leashIntArray = j.intArrayTag(u8"leash"); leashIntArray && leashIntArray->fValue.size() == 3) {
+      // java 1.20.5 or later
+      auto x = leashIntArray->fValue[0];
+      auto y = leashIntArray->fValue[1];
+      auto z = leashIntArray->fValue[2];
+      auto leashedUuid = GetEntityUuid(j, ctx);
+      i64 leasherId = ctx.fCtx.fUuids->leasherIdFor(*leashedUuid);
+
+      Rep e(leasherId);
+      e.fPos = Pos3f(x + 0.5f, y + 0.25f, z + 0.5f);
+      e.fIdentifier = u8"minecraft:leash_knot";
+      auto leashEntityData = e.toCompoundTag();
+      int cx = mcfile::Coordinate::ChunkFromBlock(x);
+      int cz = mcfile::Coordinate::ChunkFromBlock(z);
+      ctx.fLeashKnots[{cx, cz}].push_back(leashEntityData);
+
+      b[u8"LeasherID"] = Long(leasherId);
+    } else if (auto leashCompound = FallbackPtr<CompoundTag>(j, {u8"leash", u8"Leash"}); leashCompound) {
+      if (auto leasherUuid = props::GetUuid(*leashCompound, {.fIntArray = u8"UUID"}); leasherUuid) {
+        auto leasherUuidB = ctx.fCtx.fUuids->toId(*leasherUuid);
+        b[u8"LeasherID"] = Long(leasherUuidB);
+      } else {
+        auto x = leashCompound->int32(u8"X");
+        auto y = leashCompound->int32(u8"Y");
+        auto z = leashCompound->int32(u8"Z");
+        if (x && y && z) {
+          auto leashedUuid = GetEntityUuid(j, ctx);
+          i64 leasherId = ctx.fCtx.fUuids->leasherIdFor(*leashedUuid);
+
+          Rep e(leasherId);
+          e.fPos = Pos3f(*x + 0.5f, *y + 0.25f, *z + 0.5f);
+          e.fIdentifier = u8"minecraft:leash_knot";
+          auto leashEntityData = e.toCompoundTag();
+          int cx = mcfile::Coordinate::ChunkFromBlock(*x);
+          int cz = mcfile::Coordinate::ChunkFromBlock(*z);
+          ctx.fLeashKnots[{cx, cz}].push_back(leashEntityData);
+
+          b[u8"LeasherID"] = Long(leasherId);
+        }
+      }
+    }
+  }
+
   static void AddProperty(CompoundTag &bedrock, std::u8string const &key, std::shared_ptr<Tag> const &value) {
     auto p = bedrock.compoundTag(u8"properties");
     if (!p) {
