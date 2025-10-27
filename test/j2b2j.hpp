@@ -951,6 +951,11 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     if (id == u8"minecraft:horse") {
       equipmentE->erase(u8"chest");
     }
+    if (equipmentE->empty()) {
+      equipmentE = nullptr;
+    }
+  }
+  if (equipmentE) {
     CHECK(equipmentA);
     if (equipmentA) {
       CHECK(equipmentA->size() == equipmentE->size());
