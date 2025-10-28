@@ -652,6 +652,7 @@ public:
     case cobblestone_wall:
     case command_block:
     case composter:
+    case copper_bars:
     case copper_block:
     case copper_bulb:
     case copper_grate:
@@ -717,6 +718,7 @@ public:
     case end_stone_bricks:
     case exposed_chiseled_copper:
     case exposed_copper:
+    case exposed_copper_bars:
     case exposed_copper_bulb:
     case exposed_copper_grate:
     case exposed_cut_copper:
@@ -838,6 +840,7 @@ public:
     case orange_wool:
     case oxidized_chiseled_copper:
     case oxidized_copper:
+    case oxidized_copper_bars:
     case oxidized_copper_bulb:
     case oxidized_copper_grate:
     case oxidized_cut_copper:
@@ -981,27 +984,32 @@ public:
     case warped_stem:
     case warped_wart_block:
     case waxed_chiseled_copper:
+    case waxed_copper_bars:
     case waxed_copper_block:
     case waxed_copper_bulb:
     case waxed_copper_grate:
     case waxed_cut_copper:
     case waxed_exposed_chiseled_copper:
     case waxed_exposed_copper:
+    case waxed_exposed_copper_bars:
     case waxed_exposed_copper_bulb:
     case waxed_exposed_copper_grate:
     case waxed_exposed_cut_copper:
     case waxed_oxidized_chiseled_copper:
     case waxed_oxidized_copper:
+    case waxed_oxidized_copper_bars:
     case waxed_oxidized_copper_bulb:
     case waxed_oxidized_copper_grate:
     case waxed_oxidized_cut_copper:
     case waxed_weathered_chiseled_copper:
     case waxed_weathered_copper:
+    case waxed_weathered_copper_bars:
     case waxed_weathered_copper_bulb:
     case waxed_weathered_copper_grate:
     case waxed_weathered_cut_copper:
     case weathered_chiseled_copper:
     case weathered_copper:
+    case weathered_copper_bars:
     case weathered_copper_bulb:
     case weathered_copper_grate:
     case weathered_cut_copper:
