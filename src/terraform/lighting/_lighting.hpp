@@ -1513,7 +1513,6 @@ private:
     case crimson_fence:
     case warped_fence:
     case soul_torch:
-    case iron_chain:
     case blackstone_wall:
     case polished_blackstone_wall:
     case polished_blackstone_brick_wall:
@@ -1719,6 +1718,68 @@ private:
     case tall_dry_grass:
     case cactus_flower:
     case dried_ghast:
+    case oak_shelf:
+    case spruce_shelf:
+    case birch_shelf:
+    case jungle_shelf:
+    case acacia_shelf:
+    case dark_oak_shelf:
+    case mangrove_shelf:
+    case cherry_shelf:
+    case pale_oak_shelf:
+    case bamboo_shelf:
+    case crimson_shelf:
+    case warped_shelf:
+    case copper_bars:
+    case exposed_copper_bars:
+    case weathered_copper_bars:
+    case oxidized_copper_bars:
+    case waxed_copper_bars:
+    case waxed_exposed_copper_bars:
+    case waxed_weathered_copper_bars:
+    case waxed_oxidized_copper_bars:
+    case copper_chest:
+    case exposed_copper_chest:
+    case weathered_copper_chest:
+    case oxidized_copper_chest:
+    case waxed_copper_chest:
+    case waxed_exposed_copper_chest:
+    case waxed_weathered_copper_chest:
+    case waxed_oxidized_copper_chest:
+    case copper_golem_statue:
+    case exposed_copper_golem_statue:
+    case weathered_copper_golem_statue:
+    case oxidized_copper_golem_statue:
+    case waxed_copper_golem_statue:
+    case waxed_exposed_copper_golem_statue:
+    case waxed_weathered_copper_golem_statue:
+    case waxed_oxidized_copper_golem_statue:
+    case exposed_lightning_rod:
+    case weathered_lightning_rod:
+    case oxidized_lightning_rod:
+    case waxed_lightning_rod:
+    case waxed_exposed_lightning_rod:
+    case waxed_weathered_lightning_rod:
+    case waxed_oxidized_lightning_rod:
+    case copper_torch:
+    case copper_wall_torch:
+    case copper_lantern:
+    case exposed_copper_lantern:
+    case weathered_copper_lantern:
+    case oxidized_copper_lantern:
+    case waxed_copper_lantern:
+    case waxed_exposed_copper_lantern:
+    case waxed_weathered_copper_lantern:
+    case waxed_oxidized_copper_lantern:
+    case iron_chain:
+    case copper_chain:
+    case exposed_copper_chain:
+    case weathered_copper_chain:
+    case oxidized_copper_chain:
+    case waxed_copper_chain:
+    case waxed_exposed_copper_chain:
+    case waxed_weathered_copper_chain:
+    case waxed_oxidized_copper_chain:
       return 0;
     case acacia_leaves:
     case beacon:
