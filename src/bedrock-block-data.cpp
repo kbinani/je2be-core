@@ -17,15 +17,15 @@ namespace je2be::bedrock {
 class BlockData::Impl {
   using String = std::u8string;
   using Props = std::map<std::u8string, std::u8string>;
-  using Converter = std::function<String(String const &bName, CompoundTag const &s, Props &p)>;
+  using Converter = std::function<String(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion)>;
   using Behavior = std::function<void(CompoundTag const &s, Props &p)>;
 
   struct C {
     template <class... Arg>
     C(Converter base, Arg... args) : fBase(base), fBehaviors(std::initializer_list<Behavior>{args...}) {}
 
-    String operator()(String const &bName, CompoundTag const &input, Props &p) const {
-      auto name = fBase(bName, input, p);
+    String operator()(String const &bName, CompoundTag const &input, Props &p, int outputDataVersion) const {
+      auto name = fBase(bName, input, p, outputDataVersion);
       for (auto const &b : fBehaviors) {
         b(input, p);
       }
@@ -54,7 +54,7 @@ public:
       static CompoundTag const sEmpty;
       CompoundTag const &states = migrated.fStates ? *migrated.fStates : sEmpty;
       map<u8string, u8string> props;
-      auto name = found->second(migrated.fName, states, props);
+      auto name = found->second(migrated.fName, states, props, dataVersion);
       return mcfile::je::Block::FromNameAndProperties(name, dataVersion, props);
     }
   }
@@ -67,7 +67,7 @@ private:
   Impl() = delete;
 
 #pragma region Converters : A
-  static String Anvil(String const &bName, CompoundTag const &s, Props &p) {
+  static String Anvil(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto damage = s.string(u8"damage", u8"undamaged");
     std::u8string name = u8"anvil";
     if (damage == u8"slightly_damaged") {
@@ -82,7 +82,7 @@ private:
     return Ns() + name;
   }
 
-  static String AzaleaLeavesFlowered(String const &bName, CompoundTag const &s, Props &p) {
+  static String AzaleaLeavesFlowered(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     PersistentFromPersistentBit(s, p);
     Submergible(s, p);
     return Ns() + u8"flowering_azalea_leaves";
@@ -90,7 +90,7 @@ private:
 #pragma endregion
 
 #pragma region Converters : B
-  static String Bamboo(String const &bName, CompoundTag const &s, Props &p) {
+  static String Bamboo(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto leafSize = s.string(u8"bamboo_leaf_size", u8"large_leaves");
     std::u8string leaves = u8"none";
     if (leafSize == u8"no_leaves") {
@@ -114,25 +114,25 @@ private:
     return bName;
   }
 
-  static String Barrel(String const &bName, CompoundTag const &s, Props &p) {
+  static String Barrel(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     OpenFromOpenBit(s, p);
     Facing6FromFacingDirectionA(s, p);
     return bName;
   }
 
-  static String Beehive(String const &bName, CompoundTag const &s, Props &p) {
+  static String Beehive(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing4FromDirectionA(s, p);
     auto honeyLevel = s.int32(u8"honey_level", 0);
     p[u8"honey_level"] = Int(honeyLevel);
     return bName;
   }
 
-  static String Beetroot(String const &bName, CompoundTag const &s, Props &p) {
+  static String Beetroot(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     AgeFromGrowthNonLinear(s, p);
     return Ns() + u8"beetroots";
   }
 
-  static String Bed(String const &bName, CompoundTag const &s, Props &p) {
+  static String Bed(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing4FromDirectionA(s, p);
     auto headPiece = s.boolean(u8"head_piece_bit", false);
     auto occupied = s.boolean(u8"occupied_bit", false);
@@ -141,7 +141,7 @@ private:
     return Ns() + u8"white_bed";
   }
 
-  static String Bell(String const &bName, CompoundTag const &s, Props &p) {
+  static String Bell(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto attachment = s.string(u8"attachment", u8"standing");
     auto direction = s.int32(u8"direction", 0);
     auto toggle = s.boolean(u8"toggle_bit", false);
@@ -179,7 +179,7 @@ private:
     return bName;
   }
 
-  static String BigDripleaf(String const &bName, CompoundTag const &s, Props &p) {
+  static String BigDripleaf(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto head = s.boolean(u8"big_dripleaf_head", false);
     Facing4FromCardinalDirectionMigratingDirectionA(s, p);
     std::u8string name;
@@ -203,73 +203,73 @@ private:
     return Ns() + name;
   }
 
-  static String BlockWithAge(String const &bName, CompoundTag const &s, Props &p) {
+  static String BlockWithAge(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Age(s, p);
     return bName;
   }
 
-  static String BlockWithAgeFromGrowth(String const &bName, CompoundTag const &s, Props &p) {
+  static String BlockWithAgeFromGrowth(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     AgeFromGrowth(s, p);
     return bName;
   }
 
-  static String BlockWithAxisFromPillarAxis(String const &bName, CompoundTag const &s, Props &p) {
+  static String BlockWithAxisFromPillarAxis(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     AxisFromPillarAxis(s, p);
     return bName;
   }
 
-  static String BlockWithFacing4FromCardinalDirection(String const &bName, CompoundTag const &s, Props &p) {
+  static String BlockWithFacing4FromCardinalDirection(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     if (auto cd = s.string(u8"minecraft:cardinal_direction"); cd) {
       p[u8"facing"] = *cd;
     }
     return bName;
   }
 
-  static String BlockWithFacing4FromDirectionA(String const &bName, CompoundTag const &s, Props &p) {
+  static String BlockWithFacing4FromDirectionA(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing4FromDirectionA(s, p);
     return bName;
   }
 
-  static String BlockWithFacing4FromFacingDirectionA(String const &bName, CompoundTag const &s, Props &p) {
+  static String BlockWithFacing4FromFacingDirectionA(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing4FromFacingDirectionA(s, p);
     return bName;
   }
 
-  static String BlockWithFacing6FromFacingDirectionA(String const &bName, CompoundTag const &s, Props &p) {
+  static String BlockWithFacing6FromFacingDirectionA(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing6FromFacingDirectionA(s, p);
     return bName;
   }
 
-  static String BlockWithFacing6FromFacingDirectionASubmergible(String const &bName, CompoundTag const &s, Props &p) {
+  static String BlockWithFacing6FromFacingDirectionASubmergible(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing6FromFacingDirectionA(s, p);
     Submergible(s, p);
     return bName;
   }
 
-  static String BlockWithFacing6FromBlockFaceMigratingFacingDirectionASubmergible(String const &bName, CompoundTag const &s, Props &p) {
+  static String BlockWithFacing6FromBlockFaceMigratingFacingDirectionASubmergible(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing6FromBlockFaceMigratingFacingDirectionA(s, p);
     Submergible(s, p);
     return bName;
   }
 
-  static String BlockWithFacing4FromFacingDirectionASubmergible(String const &bName, CompoundTag const &s, Props &p) {
+  static String BlockWithFacing4FromFacingDirectionASubmergible(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing4FromFacingDirectionA(s, p);
     Submergible(s, p);
     return bName;
   }
 
-  static String BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible(String const &bName, CompoundTag const &s, Props &p) {
+  static String BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing4FromCardinalDirectionMigratingFacingDirectionA(s, p);
     Submergible(s, p);
     return bName;
   }
 
-  static String BlockWithFacing6FromFacingDirection6(String const &bName, CompoundTag const &s, Props &p) {
+  static String BlockWithFacing6FromFacingDirection6(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing6FromFacingDirectionB(s, p);
     return bName;
   }
 
-  static String BlockWithMultiFaceDirectionBitsSubmergible(String const &bName, CompoundTag const &s, Props &p) {
+  static String BlockWithMultiFaceDirectionBitsSubmergible(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto bits = s.int32(u8"multi_face_direction_bits", 0);
     bool down = (bits & 0x1) == 0x1;
     bool up = (bits & 0x2) == 0x2;
@@ -289,39 +289,39 @@ private:
     return bName;
   }
 
-  static String BlockWithPersistentFromPersistentBitSubmergible(String const &bName, CompoundTag const &s, Props &p) {
+  static String BlockWithPersistentFromPersistentBitSubmergible(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     PersistentFromPersistentBit(s, p);
     Submergible(s, p);
     return bName;
   }
 
-  static String BlockWithPowerFromRedstoneSignal(String const &bName, CompoundTag const &s, Props &p) {
+  static String BlockWithPowerFromRedstoneSignal(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     PowerFromRedstoneSignal(s, p);
     return bName;
   }
 
-  static String BlockWithRotationFromGroundSignDirection(String const &bName, CompoundTag const &s, Props &p) {
+  static String BlockWithRotationFromGroundSignDirection(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     RotationFromGroundSignDirection(s, p);
     return bName;
   }
 
-  static String BlockWithSnowy(String const &bName, CompoundTag const &s, Props &p) {
+  static String BlockWithSnowy(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     p[u8"snowy"] = u8"false";
     return bName;
   }
 
-  static String BlockWithSubmergible(String const &bName, CompoundTag const &s, Props &p) {
+  static String BlockWithSubmergible(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Submergible(s, p);
     return bName;
   }
 
-  static String BlockWithWallProperties(String const &bName, CompoundTag const &s, Props &p) {
+  static String BlockWithWallProperties(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     WallProperties(s, p);
     Submergible(s, p);
     return bName;
   }
 
-  static String BrewingStand(String const &bName, CompoundTag const &s, Props &p) {
+  static String BrewingStand(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto slotA = s.boolean(u8"brewing_stand_slot_a_bit", false);
     auto slotB = s.boolean(u8"brewing_stand_slot_b_bit", false);
     auto slotC = s.boolean(u8"brewing_stand_slot_c_bit", false);
@@ -331,7 +331,7 @@ private:
     return bName;
   }
 
-  static String BrownMushroomBlock(String const &bName, CompoundTag const &s, Props &p) {
+  static String BrownMushroomBlock(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     bool stem = MushroomProperties(s, p);
     std::u8string name;
     if (stem) {
@@ -342,13 +342,13 @@ private:
     return Ns() + name;
   }
 
-  static String BubbleColumn(String const &bName, CompoundTag const &s, Props &p) {
+  static String BubbleColumn(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto dragDown = s.boolean(u8"drag_down", false);
     p[u8"drag"] = Bool(dragDown);
     return bName;
   }
 
-  static String Button(String const &bName, CompoundTag const &s, Props &p) {
+  static String Button(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto buttonPressedBit = s.boolean(u8"button_pressed_bit", false);
     auto facingDirection = s.int32(u8"facing_direction", 0);
     std::u8string facing = u8"south";
@@ -393,13 +393,13 @@ private:
 #pragma endregion
 
 #pragma region Converters : C
-  static String Cake(String const &bName, CompoundTag const &s, Props &p) {
+  static String Cake(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto biteCounter = s.int32(u8"bite_counter", 0);
     p[u8"bites"] = Int(biteCounter);
     return bName;
   }
 
-  static String Campfire(String const &bName, CompoundTag const &s, Props &p) {
+  static String Campfire(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing4FromCardinalDirectionMigratingDirectionA(s, p);
     Submergible(s, p);
     auto extinguished = s.boolean(u8"extinguished", false);
@@ -407,7 +407,7 @@ private:
     return bName;
   }
 
-  static String Candle(String const &bName, CompoundTag const &s, Props &p) {
+  static String Candle(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto candles = s.int32(u8"candles", 0);
     p[u8"candles"] = Int(candles + 1);
     Lit(s, p);
@@ -415,18 +415,18 @@ private:
     return bName;
   }
 
-  static String CandleCake(String const &bName, CompoundTag const &s, Props &p) {
+  static String CandleCake(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Lit(s, p);
     return bName;
   }
 
-  static String CarpetLegacy(String const &bName, CompoundTag const &s, Props &p) {
+  static String CarpetLegacy(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto colorB = s.string(u8"color", u8"white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     return Ns() + colorJ + u8"_carpet";
   }
 
-  static String Cauldron(String const &bName, CompoundTag const &s, Props &p) {
+  static String Cauldron(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto liquid = s.string(u8"cauldron_liquid", u8"water");
     std::u8string name = u8"cauldron";
     auto fillLevel = s.int32(u8"fill_level", 0);
@@ -444,7 +444,7 @@ private:
     return Ns() + name;
   }
 
-  static String CaveVines(String const &bName, CompoundTag const &s, Props &p) {
+  static String CaveVines(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto berries = bName.ends_with(u8"_with_berries");
     auto growingPlantAge = s.int32(u8"growing_plant_age", 1);
     p[u8"age"] = Int(growingPlantAge);
@@ -452,19 +452,19 @@ private:
     return Ns() + u8"cave_vines";
   }
 
-  static String CaveVinesBody(String const &bName, CompoundTag const &s, Props &p) {
+  static String CaveVinesBody(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto berries = bName.ends_with(u8"_with_berries");
     p[u8"berries"] = Bool(berries);
     return Ns() + u8"cave_vines_plant";
   }
 
-  static String Chain(String const &bName, CompoundTag const &s, Props &p) {
+  static String Chain(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     AxisFromPillarAxis(s, p);
     Submergible(s, p);
     return Ns() + u8"chain";
   }
 
-  static String ChiseledBookshelf(String const &bName, CompoundTag const &s, Props &p) {
+  static String ChiseledBookshelf(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing4FromDirectionA(s, p);
     auto stored = s.int32(u8"books_stored", 0);
     for (int i = 0; i < 6; i++) {
@@ -475,20 +475,20 @@ private:
     return bName;
   }
 
-  static String Cocoa(String const &bName, CompoundTag const &s, Props &p) {
+  static String Cocoa(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing4FromDirectionA(s, p);
     Age(s, p);
     return bName;
   }
 
-  static String CommandBlock(String const &bName, CompoundTag const &s, Props &p) {
+  static String CommandBlock(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto conditional = s.boolean(u8"conditional_bit", false);
     Facing6FromFacingDirectionA(s, p);
     p[u8"conditional"] = Bool(conditional);
     return bName;
   }
 
-  static String Comparator(String const &bName, CompoundTag const &s, Props &p) {
+  static String Comparator(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     // auto powered = bName.starts_with(Ns() + "powered_");
     auto lit = s.boolean(u8"output_lit_bit", false);
     auto subtract = s.boolean(u8"output_subtract_bit", false);
@@ -498,25 +498,25 @@ private:
     return Ns() + u8"comparator";
   }
 
-  static String Composter(String const &bName, CompoundTag const &s, Props &p) {
+  static String Composter(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto level = s.int32(u8"composter_fill_level", 0);
     p[u8"level"] = Int(level);
     return bName;
   }
 
-  static String ConcreteLegacy(String const &bName, CompoundTag const &s, Props &p) {
+  static String ConcreteLegacy(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto colorB = s.string(u8"color", u8"white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     return Ns() + colorJ + u8"_concrete";
   }
 
-  static String ConcretePowder(String const &bName, CompoundTag const &s, Props &p) {
+  static String ConcretePowder(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto colorB = s.string(u8"color", u8"white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     return Ns() + colorJ + u8"_concrete_powder";
   }
 
-  static String CopperBulb(String const &bName, CompoundTag const &s, Props &p) {
+  static String CopperBulb(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto lit = s.boolean(u8"lit", false);
     auto poweredBit = s.boolean(u8"powered_bit", false);
     p[u8"lit"] = Bool(lit);
@@ -524,7 +524,7 @@ private:
     return bName;
   }
 
-  static String CoralLegacy(String const &bName, CompoundTag const &s, Props &p) {
+  static String CoralLegacy(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto color = s.string(u8"coral_color", u8"pink");
     auto dead = s.boolean(u8"dead_bit", false);
     auto type = CoralTypeFromCoralColor(color);
@@ -537,7 +537,7 @@ private:
     return Ns() + name + u8"_coral";
   }
 
-  static String CoralBlock(String const &bName, CompoundTag const &s, Props &p) {
+  static String CoralBlock(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto color = s.string(u8"coral_color", u8"pink");
     auto dead = s.boolean(u8"dead_bit", false);
     auto type = CoralTypeFromCoralColor(color);
@@ -549,14 +549,14 @@ private:
     return Ns() + name;
   }
 
-  static String CoralFan(String const &bName, CompoundTag const &s, Props &p) {
+  static String CoralFan(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     // coral_fan_direction always 1
     // auto direction = s.int32(u8"coral_fan_direction", 1);
     Submergible(s, p);
     return bName;
   }
 
-  static String CoralFanLegacy(String const &bName, CompoundTag const &s, Props &p) {
+  static String CoralFanLegacy(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto color = s.string(u8"coral_color", u8"pink");
     auto dead = bName.ends_with(u8"_dead");
     auto type = CoralTypeFromCoralColor(color);
@@ -569,7 +569,7 @@ private:
     return Ns() + name;
   }
 
-  static String CoralFanHangLegacy(String const &bName, CompoundTag const &s, Props &p) {
+  static String CoralFanHangLegacy(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto hangType = s.boolean(u8"coral_hang_type_bit", false);
     auto dead = s.boolean(u8"dead_bit", false);
     std::u8string name;
@@ -596,13 +596,13 @@ private:
     return Ns() + name + u8"_coral_wall_fan";
   }
 
-  static String CoralWallFan(String const &bName, CompoundTag const &s, Props &p) {
+  static String CoralWallFan(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     CoralDirection(s, p);
     Submergible(s, p);
     return bName;
   }
 
-  static String Crafter(String const &bName, CompoundTag const &s, Props &p) {
+  static String Crafter(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto crafting = s.boolean(u8"crafting", false);
     auto orientation = s.string(u8"orientation", u8"north_up");
     auto triggered = s.boolean(u8"triggered_bit", false);
@@ -612,7 +612,7 @@ private:
     return bName;
   }
 
-  static String CreakingHeart(String const &bName, CompoundTag const &s, Props &p) {
+  static String CreakingHeart(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     if (auto state = s.string(u8"creaking_heart_state"); state) {
       p[u8"creaking_heart_state"] = String(*state);
     } else {
@@ -630,33 +630,33 @@ private:
 #pragma endregion
 
 #pragma region Converters : D
-  static String DarkoakStandingSign(String const &bName, CompoundTag const &s, Props &p) {
+  static String DarkoakStandingSign(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     RotationFromGroundSignDirection(s, p);
     Submergible(s, p);
     return Ns() + u8"dark_oak_sign";
   }
 
-  static String DarkoakWallSign(String const &bName, CompoundTag const &s, Props &p) {
+  static String DarkoakWallSign(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing4FromFacingDirectionA(s, p);
     Submergible(s, p);
     return Ns() + u8"dark_oak_wall_sign";
   }
 
-  static String DaylightDetector(String const &bName, CompoundTag const &s, Props &p) {
+  static String DaylightDetector(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto inverted = bName.ends_with(u8"_inverted");
     p[u8"inverted"] = Bool(inverted);
     PowerFromRedstoneSignal(s, p);
     return Ns() + u8"daylight_detector";
   }
 
-  static String DecoratedPot(String const &bName, CompoundTag const &s, Props &p) {
+  static String DecoratedPot(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Submergible(s, p);
     Facing4FromDirectionNorth0East1South2West3(s, p);
     p[u8"cracked"] = u8"false";
     return bName;
   }
 
-  static String Dirt(String const &bName, CompoundTag const &s, Props &p) {
+  static String Dirt(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto type = s.string(u8"dirt_type", u8"normal");
     std::u8string prefix;
     if (type != u8"normal") {
@@ -665,7 +665,7 @@ private:
     return Ns() + prefix + u8"dirt";
   }
 
-  static String Door(String const &bName, CompoundTag const &s, Props &p) {
+  static String Door(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto doorHingeBit = s.boolean(u8"door_hinge_bit", false);
     OpenFromOpenBit(s, p);
     FacingFromCardinalDirectionMigratingDirectionNorth3East0South1West2(s, p);
@@ -679,7 +679,7 @@ private:
     }
   }
 
-  static String DoublePlantLegacy(String const &bName, CompoundTag const &s, Props &p) {
+  static String DoublePlantLegacy(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto type = s.string(u8"double_plant_type", u8"rose");
     std::u8string name;
     if (type == u8"fern") {
@@ -700,7 +700,7 @@ private:
   }
 
   static Converter DoubleSlab(std::optional<std::u8string> name = std::nullopt) {
-    return [name](String const &bName, CompoundTag const &s, Props &p) {
+    return [name](String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
       p[u8"type"] = u8"double";
       Submergible(s, p);
       if (name) {
@@ -711,14 +711,14 @@ private:
     };
   }
 
-  static String DoubleStoneSlab(String const &bName, CompoundTag const &s, Props &p) {
+  static String DoubleStoneSlab(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto stoneSlabType = s.string(u8"stone_slab_type", u8"stone");
     p[u8"type"] = u8"double";
     Submergible(s, p);
     return Ns() + stoneSlabType + u8"_slab";
   }
 
-  static String DoubleStoneSlab2(String const &bName, CompoundTag const &s, Props &p) {
+  static String DoubleStoneSlab2(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto stoneSlabType = s.string(u8"stone_slab_type_2", u8"prismarine_dark");
     auto name = StoneTypeFromStone2(stoneSlabType);
     p[u8"type"] = u8"double";
@@ -726,35 +726,35 @@ private:
     return Ns() + name + u8"_slab";
   }
 
-  static String DoubleStoneSlab3(String const &bName, CompoundTag const &s, Props &p) {
+  static String DoubleStoneSlab3(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto stoneSlabType = s.string(u8"stone_slab_type_3", u8"andesite");
     p[u8"type"] = u8"double";
     Submergible(s, p);
     return Ns() + stoneSlabType + u8"_slab";
   }
 
-  static String DoubleStoneSlab4(String const &bName, CompoundTag const &s, Props &p) {
+  static String DoubleStoneSlab4(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto stoneSlabType = s.string(u8"stone_slab_type_4", u8"stone");
     p[u8"type"] = u8"double";
     Submergible(s, p);
     return Ns() + stoneSlabType + u8"_slab";
   }
 
-  static String DoubleWoodenSlab(String const &bName, CompoundTag const &s, Props &p) {
+  static String DoubleWoodenSlab(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto woodType = s.string(u8"wood_type", u8"oak");
     p[u8"type"] = u8"double";
     Submergible(s, p);
     return Ns() + woodType + u8"_slab";
   }
 
-  static String Dispenser(String const &bName, CompoundTag const &s, Props &p) {
+  static String Dispenser(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing6FromFacingDirectionA(s, p);
     auto triggered = s.boolean(u8"triggered_bit", false);
     p[u8"triggered"] = Bool(triggered);
     return bName;
   }
 
-  static String DriedGhast(String const &bName, CompoundTag const &s, Props &p) {
+  static String DriedGhast(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     FacingFromCardinalDirection(s, p);
     Submergible(s, p);
     auto hidration = s.int32(u8"rehydration_level", 0);
@@ -762,7 +762,7 @@ private:
     return bName;
   }
 
-  static String Dropper(String const &bName, CompoundTag const &s, Props &p) {
+  static String Dropper(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing6FromFacingDirectionA(s, p);
     auto triggered = s.boolean(u8"triggered_bit", false);
     p[u8"triggered"] = Bool(triggered);
@@ -771,14 +771,14 @@ private:
 #pragma endregion
 
 #pragma region Converters : E
-  static String EndPortalFrame(String const &bName, CompoundTag const &s, Props &p) {
+  static String EndPortalFrame(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing4FromCardinalDirectionMigratingDirectionA(s, p);
     auto eye = s.boolean(u8"end_portal_eye_bit", false);
     p[u8"eye"] = Bool(eye);
     return bName;
   }
 
-  static String EndRod(String const &bName, CompoundTag const &s, Props &p) {
+  static String EndRod(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     std::u8string facing;
     switch (s.int32(u8"facing_direction", 0)) {
     case 1:
@@ -807,19 +807,19 @@ private:
 #pragma endregion
 
 #pragma region Converter : F
-  static String Farmland(String const &bName, CompoundTag const &s, Props &p) {
+  static String Farmland(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto moisture = s.int32(u8"moisturized_amount", 0);
     p[u8"moisture"] = Int(moisture);
     return bName;
   }
 
-  static String FenceLegacy(String const &bName, CompoundTag const &s, Props &p) {
+  static String FenceLegacy(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto woodType = s.string(u8"wood_type", u8"oak");
     Submergible(s, p);
     return Ns() + woodType + u8"_fence";
   }
 
-  static String FlowerCarpet(String const &bName, CompoundTag const &s, Props &p) {
+  static String FlowerCarpet(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     i32 growth = s.int32(u8"growth", 0);
     i32 flowerCount = ClosedRange<i32>::Clamp(growth + 1, 1, 4);
     p[u8"flower_amount"] = mcfile::String::ToString(flowerCount);
@@ -827,7 +827,7 @@ private:
     return bName;
   }
 
-  static String FenceGate(String const &bName, CompoundTag const &s, Props &p) {
+  static String FenceGate(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto inWall = s.boolean(u8"in_wall_bit", false);
     p[u8"in_wall"] = Bool(inWall);
     p[u8"powered"] = Bool(false);
@@ -840,7 +840,7 @@ private:
     }
   }
 
-  static String FurnaceAndSimilar(String const &bName, CompoundTag const &s, Props &p) {
+  static String FurnaceAndSimilar(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing4FromCardinalDirectionMigratingFacingDirectionA(s, p);
     auto lit = bName.starts_with(u8"minecraft:lit_");
     std::u8string name;
@@ -855,7 +855,7 @@ private:
 #pragma endregion
 
 #pragma region Converters : G
-  static String GoldenRail(String const &bName, CompoundTag const &s, Props &p) {
+  static String GoldenRail(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto railData = s.boolean(u8"rail_data_bit", false);
     auto railDirection = s.int32(u8"rail_direction", 0);
     p[u8"powered"] = Bool(railData);
@@ -864,12 +864,12 @@ private:
     return Ns() + u8"powered_rail";
   }
 
-  static String GrassBlock(String const &bName, CompoundTag const &s, Props &p) {
+  static String GrassBlock(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     p[u8"snowy"] = u8"false";
     return Ns() + u8"grass_block";
   }
 
-  static String Grindstone(String const &bName, CompoundTag const &s, Props &p) {
+  static String Grindstone(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto attachment = s.string(u8"attachment", u8"floor");
     std::u8string face;
     if (attachment == u8"side") {
@@ -886,7 +886,7 @@ private:
 #pragma endregion
 
 #pragma region Converters : H
-  static String HangingSign(String const &bName, CompoundTag const &s, Props &p) {
+  static String HangingSign(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Submergible(s, p);
 
     bool hanging = s.boolean(u8"hanging", false);
@@ -936,7 +936,7 @@ private:
     }
   }
 
-  static String Hopper(String const &bName, CompoundTag const &s, Props &p) {
+  static String Hopper(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing6FromFacingDirectionA(s, p);
     auto toggle = s.boolean(u8"toggle_bit", false);
     p[u8"enabled"] = Bool(!toggle);
@@ -945,7 +945,7 @@ private:
 #pragma endregion
 
 #pragma region Converters : J
-  static String Jigsaw(String const &bName, CompoundTag const &s, Props &p) {
+  static String Jigsaw(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto facingDirection = s.int32(u8"facing_direction", 0);
     auto rotation = s.int32(u8"rotation", 0);
     Facing6 f6 = Facing6FromBedrockFacingDirectionA(facingDirection);
@@ -967,7 +967,7 @@ private:
 #pragma endregion
 
 #pragma region Converters : K
-  static String Kelp(String const &bName, CompoundTag const &s, Props &p) {
+  static String Kelp(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto age = s.int32(u8"kelp_age", 0);
     p[u8"age"] = Int(age);
     return bName;
@@ -975,14 +975,14 @@ private:
 #pragma endregion
 
 #pragma region Converters : L
-  static String Lantern(String const &bName, CompoundTag const &s, Props &p) {
+  static String Lantern(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto hanging = s.boolean(u8"hanging", false);
     p[u8"hanging"] = Bool(hanging);
     Submergible(s, p);
     return bName;
   }
 
-  static String LeafLitter(String const &bName, CompoundTag const &s, Props &p) {
+  static String LeafLitter(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     i32 growth = s.int32(u8"growth", 0);
     i32 segmentCount = ClosedRange<i32>::Clamp(growth + 1, 1, 4);
     p[u8"segment_amount"] = mcfile::String::ToString(segmentCount);
@@ -990,28 +990,28 @@ private:
     return bName;
   }
 
-  static String LeavesLegacy(String const &bName, CompoundTag const &s, Props &p) {
+  static String LeavesLegacy(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto leafType = s.string(u8"old_leaf_type", u8"oak");
     PersistentFromPersistentBit(s, p);
     Submergible(s, p);
     return Ns() + leafType + u8"_leaves";
   }
 
-  static String Leaves2(String const &bName, CompoundTag const &s, Props &p) {
+  static String Leaves2(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto newLeafType = s.string(u8"new_leaf_type", u8"acacia"); // TODO: acacia?
     PersistentFromPersistentBit(s, p);
     Submergible(s, p);
     return Ns() + newLeafType + u8"_leaves";
   }
 
-  static String Lectern(String const &bName, CompoundTag const &s, Props &p) {
+  static String Lectern(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto powered = s.boolean(u8"powered_bit", false);
     p[u8"powered"] = Bool(powered);
     Facing4FromCardinalDirectionMigratingDirectionA(s, p);
     return bName;
   }
 
-  static String Lever(String const &bName, CompoundTag const &s, Props &p) {
+  static String Lever(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto direction = s.string(u8"lever_direction", u8"up_north_south");
     std::u8string face;
     std::u8string facing;
@@ -1038,27 +1038,27 @@ private:
     return bName;
   }
 
-  static String LightBlock(String const &bName, CompoundTag const &s, Props &p) {
+  static String LightBlock(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto level = s.int32(u8"block_light_level", 0);
     p[u8"level"] = Int(level);
     Submergible(s, p);
     return Ns() + u8"light";
   }
 
-  static String LightningRod(String const &bName, CompoundTag const &s, Props &p) {
+  static String LightningRod(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing6FromFacingDirectionA(s, p);
     Submergible(s, p);
     p[u8"powered"] = Bool(s.boolean(u8"powered_bit", false));
     return bName;
   }
 
-  static String Liquid(String const &bName, CompoundTag const &s, Props &p) {
+  static String Liquid(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto depth = s.int32(u8"liquid_depth", 0);
     p[u8"level"] = Int(depth);
     return bName;
   }
 
-  static String LiquidFlowing(String const &bName, CompoundTag const &s, Props &p) {
+  static String LiquidFlowing(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto depth = s.int32(u8"liquid_depth", 0);
     p[u8"level"] = Int(depth);
     if (bName.ends_with(u8"lava")) {
@@ -1068,7 +1068,7 @@ private:
     }
   }
 
-  static String LitPumpkin(String const &bName, CompoundTag const &s, Props &p) {
+  static String LitPumpkin(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     if (!FacingFromCardinalDirection(s, p)) {
       // legacy
       Facing4FromDirectionA(s, p);
@@ -1076,13 +1076,13 @@ private:
     return Ns() + u8"jack_o_lantern";
   }
 
-  static String LogLegacy(String const &bName, CompoundTag const &s, Props &p) {
+  static String LogLegacy(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto logType = s.string(u8"old_log_type", u8"oak");
     AxisFromPillarAxis(s, p);
     return Ns() + logType + u8"_log";
   }
 
-  static String Log2Legacy(String const &bName, CompoundTag const &s, Props &p) {
+  static String Log2Legacy(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto logType = s.string(u8"new_log_type", u8"acacia"); // TODO: acacia?
     AxisFromPillarAxis(s, p);
     return Ns() + logType + u8"_log";
@@ -1090,7 +1090,7 @@ private:
 #pragma endregion
 
 #pragma region Converters : M
-  static String MangrovePropagule(String const &bName, CompoundTag const &s, Props &p) {
+  static String MangrovePropagule(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     bool hanging = s.boolean(u8"hanging", false);
     int stage = s.int32(u8"propagule_stage", 0);
     p[u8"hanging"] = Bool(hanging);
@@ -1100,14 +1100,14 @@ private:
     return bName;
   }
 
-  static String MelonStem(String const &bName, CompoundTag const &s, Props &p) {
+  static String MelonStem(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto growth = s.int32(u8"growth", 0);
     p[u8"age"] = Int(growth);
     Facing4FromFacingDirectionA(s, p);
     return bName;
   }
 
-  static String MonsterEggLegacy(String const &bName, CompoundTag const &s, Props &p) {
+  static String MonsterEggLegacy(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto type = s.string(u8"monster_egg_stone_type", u8"stone");
     std::u8string name;
     if (type == u8"cobblestone") {
@@ -1126,7 +1126,7 @@ private:
     return Ns() + u8"infested_" + name;
   }
 
-  static String MushroomStem(String const &bName, CompoundTag const &s, Props &p) {
+  static String MushroomStem(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     MushroomProperties(s, p);
     return bName;
   }
@@ -1134,14 +1134,14 @@ private:
 
 #pragma region Converters : N
   static Converter NetherVines(std::u8string type) {
-    return [type](String const &bName, CompoundTag const &s, Props &p) {
+    return [type](String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
       auto age = s.int32(type + u8"_vines_age", 0);
       p[u8"age"] = Int(age);
       return bName;
     };
   }
 
-  static String NormalStoneSlab(String const &bName, CompoundTag const &s, Props &p) {
+  static String NormalStoneSlab(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Submergible(s, p);
     TypeFromVerticalHalfMigratingTopSlotBit(s, p);
     return Ns() + u8"stone_slab";
@@ -1149,13 +1149,13 @@ private:
 #pragma endregion
 
 #pragma region Converters : O
-  static String OakWallSign(String const &bName, CompoundTag const &s, Props &p) {
+  static String OakWallSign(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing4FromFacingDirectionA(s, p);
     Submergible(s, p);
     return Ns() + u8"oak_wall_sign";
   }
 
-  static String Observer(String const &bName, CompoundTag const &s, Props &p) {
+  static String Observer(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto facingDirection = s.string(u8"minecraft:facing_direction");
     if (facingDirection) {
       p[u8"facing"] = String(*facingDirection);
@@ -1170,13 +1170,13 @@ private:
 #pragma endregion
 
 #pragma region Converters : P
-  static String PaleHangingMoss(String const &bName, CompoundTag const &s, Props &p) {
+  static String PaleHangingMoss(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto tip = s.boolean(u8"tip", false);
     p[u8"tip"] = Bool(tip);
     return bName;
   }
 
-  static String PaleMossCarpet(String const &bName, CompoundTag const &s, Props &p) {
+  static String PaleMossCarpet(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto bottom = !s.boolean(u8"upper_block_bit", false);
     p[u8"bottom"] = Bool(bottom);
     for (auto f : {Facing4::North, Facing4::East, Facing4::South, Facing4::West}) {
@@ -1193,12 +1193,12 @@ private:
     return bName;
   }
 
-  static String PlanksLegacy(String const &bName, CompoundTag const &s, Props &p) {
+  static String PlanksLegacy(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto woodType = s.string(u8"wood_type", u8"acacia"); // TODO: acacia?
     return Ns() + woodType + u8"_planks";
   }
 
-  static String PointedDripstone(String const &bName, CompoundTag const &s, Props &p) {
+  static String PointedDripstone(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto thickness = s.string(u8"dripstone_thickness", u8"base");
     std::u8string t = thickness;
     // base, middle, frustum, tip , tip_merge
@@ -1212,19 +1212,19 @@ private:
     return bName;
   }
 
-  static String Portal(String const &bName, CompoundTag const &s, Props &p) {
+  static String Portal(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto axis = s.string(u8"portal_axis", u8"y");
     p[u8"axis"] = axis;
     return Ns() + u8"nether_portal";
   }
 
-  static String PressurePlate(String const &bName, CompoundTag const &s, Props &p) {
+  static String PressurePlate(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto redstoneSignal = s.int32(u8"redstone_signal", 0);
     p[u8"powered"] = Bool(redstoneSignal > 0);
     return bName;
   }
 
-  static String Prismarine(String const &bName, CompoundTag const &s, Props &p) {
+  static String Prismarine(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto type = s.string(u8"prismarine_block_type", u8"default");
     std::u8string name;
     if (type == u8"bricks") {
@@ -1237,7 +1237,7 @@ private:
     return Ns() + name;
   }
 
-  static String CarvedPumpkin(String const &bName, CompoundTag const &s, Props &p) {
+  static String CarvedPumpkin(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     if (!FacingFromCardinalDirection(s, p)) {
       // legacy
       Facing4FromDirectionA(s, p);
@@ -1245,14 +1245,14 @@ private:
     return bName;
   }
 
-  static String PumpkinStem(String const &bName, CompoundTag const &s, Props &p) {
+  static String PumpkinStem(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto growth = s.int32(u8"growth", 0);
     p[u8"age"] = Int(growth);
     Facing4FromFacingDirectionA(s, p);
     return bName;
   }
 
-  static String PurpurBlock(String const &bName, CompoundTag const &s, Props &p) {
+  static String PurpurBlock(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto chisel = s.string(u8"chisel_type", u8"default");
     std::u8string name;
     if (chisel == u8"lines") {
@@ -1266,7 +1266,7 @@ private:
 #pragma endregion
 
 #pragma region Converters : Q
-  static String QuartzBlock(String const &bName, CompoundTag const &s, Props &p) {
+  static String QuartzBlock(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto type = s.string(u8"chisel_type");
     if (!type) {
       return Ns() + u8"quartz_block";
@@ -1284,14 +1284,14 @@ private:
 #pragma endregion
 
 #pragma region Converters : R
-  static String Rail(String const &bName, CompoundTag const &s, Props &p) {
+  static String Rail(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto railDirection = s.int32(u8"rail_direction", 0);
     p[u8"shape"] = ShapeFromRailDirection(railDirection);
     Submergible(s, p);
     return bName;
   }
 
-  static String RailCanBePowered(String const &bName, CompoundTag const &s, Props &p) {
+  static String RailCanBePowered(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto railData = s.boolean(u8"rail_data_bit", false);
     auto railDirection = s.int32(u8"rail_direction", 0);
     p[u8"powered"] = Bool(railData);
@@ -1300,7 +1300,7 @@ private:
     return bName;
   }
 
-  static String RedFlower(String const &bName, CompoundTag const &s, Props &p) {
+  static String RedFlower(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto flowerType = s.string(u8"flower_type", u8"poppy");
     auto rf = RedFlowerFromBedrockName(flowerType);
     if (!rf) {
@@ -1310,7 +1310,7 @@ private:
     return Ns() + name;
   }
 
-  static String RedMushroomBlock(String const &bName, CompoundTag const &s, Props &p) {
+  static String RedMushroomBlock(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     bool stem = MushroomProperties(s, p);
     if (stem) {
       return Ns() + u8"mushroom_stem";
@@ -1319,7 +1319,7 @@ private:
     }
   }
 
-  static String LegacyRedSandstone(String const &bName, CompoundTag const &s, Props &p) {
+  static String LegacyRedSandstone(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto type = s.string(u8"sand_stone_type", u8"default");
     std::u8string name = u8"red_sandstone";
     if (type == u8"heiroglyphs") {
@@ -1334,21 +1334,21 @@ private:
     return Ns() + name;
   }
 
-  static String RedstoneLamp(String const &bName, CompoundTag const &s, Props &p) {
+  static String RedstoneLamp(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto lit = bName == u8"minecraft:lit_redstone_lamp";
     p[u8"lit"] = Bool(lit);
     return Ns() + u8"redstone_lamp";
   }
 
-  static String RedstoneTorch(String const &bName, CompoundTag const &s, Props &p) {
-    auto name = Torch(u8"redstone_")(bName, s, p);
+  static String RedstoneTorch(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
+    auto name = Torch(u8"redstone_")(bName, s, p, outputDataVersion);
     assert(name.starts_with(u8"minecraft:"));
     auto lit = bName != u8"minecraft:unlit_redstone_torch";
     p[u8"lit"] = Bool(lit);
     return name;
   }
 
-  static String RedstoneOre(String const &bName, CompoundTag const &s, Props &p) {
+  static String RedstoneOre(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto lit = bName.starts_with(u8"minecraft:lit_");
     std::u8string name;
     if (lit) {
@@ -1360,19 +1360,19 @@ private:
     return Ns() + name;
   }
 
-  static String SugarCane(String const &bName, CompoundTag const &s, Props &p) {
+  static String SugarCane(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Age(s, p);
     return Ns() + u8"sugar_cane";
   }
 
   static Converter Rename(std::u8string name) {
-    return [name](String const &bName, CompoundTag const &s, Props &p) {
+    return [name](String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
       return Ns() + name;
     };
   }
 
   static Converter RenameStairs(std::u8string name) {
-    return [name](String const &bName, CompoundTag const &s, Props &p) {
+    return [name](String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
       FacingFromWeirdoDirection(s, p);
       HalfFromUpsideDownBit(s, p);
       Submergible(s, p);
@@ -1380,7 +1380,7 @@ private:
     };
   }
 
-  static String Repeater(String const &bName, CompoundTag const &s, Props &p) {
+  static String Repeater(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto powered = bName == u8"minecraft:powered_repeater";
     p[u8"powered"] = Bool(powered);
     Facing4FromCardinalDirectionMigratingDirectionA(s, p);
@@ -1389,7 +1389,7 @@ private:
     return Ns() + u8"repeater";
   }
 
-  static String RespawnAnchor(String const &bName, CompoundTag const &s, Props &p) {
+  static String RespawnAnchor(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto charges = s.int32(u8"respawn_anchor_charge", 0);
     p[u8"charges"] = Int(charges);
     return bName;
@@ -1397,11 +1397,11 @@ private:
 #pragma endregion
 
 #pragma region Converters : S
-  static String Same(String const &bName, CompoundTag const &s, Props &p) {
+  static String Same(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     return bName;
   }
 
-  static String LegacySand(String const &bName, CompoundTag const &s, Props &p) {
+  static String LegacySand(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto type = s.string(u8"sand_type", u8"normal");
     if (type == u8"red") {
       return Ns() + u8"red_sand";
@@ -1410,7 +1410,7 @@ private:
     }
   }
 
-  static String LegacySandstone(String const &bName, CompoundTag const &s, Props &p) {
+  static String LegacySandstone(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto type = s.string(u8"sand_stone_type", u8"default");
     std::u8string name = u8"sandstone";
     if (type == u8"heiroglyphs") {
@@ -1425,19 +1425,19 @@ private:
     return Ns() + name;
   }
 
-  static String SaplingLegacy(String const &bName, CompoundTag const &s, Props &p) {
+  static String SaplingLegacy(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto saplingType = s.string(u8"sapling_type", u8"acacia");
     StageFromAgeBit(s, p);
     return Ns() + saplingType + u8"_sapling";
   }
 
-  static String SculkCatalyst(String const &bName, CompoundTag const &s, Props &p) {
+  static String SculkCatalyst(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto bloom = s.boolean(u8"bloom", false);
     p[u8"bloom"] = Bool(bloom);
     return bName;
   }
 
-  static String SculkShrieker(String const &bName, CompoundTag const &s, Props &p) {
+  static String SculkShrieker(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto canSummon = s.boolean(u8"can_summon", false);
     auto active = s.boolean(u8"active", false);
     p[u8"can_summon"] = Bool(canSummon);
@@ -1446,7 +1446,7 @@ private:
     return bName;
   }
 
-  static String Seagrass(String const &bName, CompoundTag const &s, Props &p) {
+  static String Seagrass(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto type = s.string(u8"sea_grass_type", u8"default");
     std::u8string name;
     if (type == u8"double_bot") {
@@ -1461,7 +1461,7 @@ private:
     return Ns() + name;
   }
 
-  static String SeaPickle(String const &bName, CompoundTag const &s, Props &p) {
+  static String SeaPickle(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto count = s.int32(u8"cluster_count", 0);
     p[u8"pickles"] = Int(count + 1);
     auto dead = s.boolean(u8"dead_bit", false);
@@ -1469,7 +1469,7 @@ private:
     return bName;
   }
 
-  static String Scaffolding(String const &bName, CompoundTag const &s, Props &p) {
+  static String Scaffolding(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto stability = s.int32(u8"stability", 0);
     auto stabilityCheck = s.boolean(u8"stability_check", false);
     p[u8"bottom"] = Bool(stabilityCheck);
@@ -1478,18 +1478,18 @@ private:
     return bName;
   }
 
-  static String ShulkerBoxLegacy(String const &bName, CompoundTag const &s, Props &p) {
+  static String ShulkerBoxLegacy(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto colorB = s.string(u8"color", u8"white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     return Ns() + colorJ + u8"_shulker_box";
   }
 
-  static String SilverGlazedTerracotta(String const &bName, CompoundTag const &s, Props &p) {
+  static String SilverGlazedTerracotta(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing4FromFacingDirectionA(s, p);
     return Ns() + u8"light_gray_glazed_terracotta";
   }
 
-  static String Skull(String const &bName, CompoundTag const &s, Props &p) {
+  static String Skull(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto fd = s.int32(u8"facing_direction", 0);
     auto name = Namespace::Remove(bName);
     if (fd > 1) {
@@ -1513,20 +1513,20 @@ private:
     return Ns() + name;
   }
 
-  static String Slab(String const &bName, CompoundTag const &s, Props &p) {
+  static String Slab(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Submergible(s, p);
     TypeFromVerticalHalfMigratingTopSlotBit(s, p);
     return bName;
   }
 
-  static String SmallDripleafBlock(String const &bName, CompoundTag const &s, Props &p) {
+  static String SmallDripleafBlock(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing4FromCardinalDirectionMigratingDirectionA(s, p);
     HalfFromUpperBlockBit(s, p);
     Submergible(s, p);
     return Ns() + u8"small_dripleaf";
   }
 
-  static String SnifferEgg(String const &bName, CompoundTag const &s, Props &p) {
+  static String SnifferEgg(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto crackedState = s.string(u8"cracked_state", u8"no_cracks");
     i32 hatch = 0;
     if (crackedState == u8"cracked") {
@@ -1538,13 +1538,13 @@ private:
     return bName;
   }
 
-  static String SnowLayer(String const &bName, CompoundTag const &s, Props &p) {
+  static String SnowLayer(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto height = s.int32(u8"height", 0);
     p[u8"layers"] = Int(height + 1);
     return Ns() + u8"snow";
   }
 
-  static String Sponge(String const &bName, CompoundTag const &s, Props &p) {
+  static String Sponge(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto type = s.string(u8"sponge_type", u8"dry");
     if (type == u8"wet") {
       return Ns() + u8"wet_sponge";
@@ -1553,33 +1553,33 @@ private:
     }
   }
 
-  static String Stairs(String const &bName, CompoundTag const &s, Props &p) {
+  static String Stairs(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     FacingFromWeirdoDirection(s, p);
     HalfFromUpsideDownBit(s, p);
     Submergible(s, p);
     return bName;
   }
 
-  static String StainedGlassLegacy(String const &bName, CompoundTag const &s, Props &p) {
+  static String StainedGlassLegacy(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto colorB = s.string(u8"color", u8"white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     return Ns() + colorJ + u8"_stained_glass";
   }
 
-  static String StainedGlassPaneLegacy(String const &bName, CompoundTag const &s, Props &p) {
+  static String StainedGlassPaneLegacy(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto colorB = s.string(u8"color", u8"white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     Submergible(s, p);
     return Ns() + colorJ + u8"_stained_glass_pane";
   }
 
-  static String StainedHardenedClay(String const &bName, CompoundTag const &s, Props &p) {
+  static String StainedHardenedClay(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto colorB = s.string(u8"color", u8"white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     return Ns() + colorJ + u8"_terracotta";
   }
 
-  static String StandingSign(String const &bName, CompoundTag const &s, Props &p) {
+  static String StandingSign(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     std::u8string name;
     if (bName.ends_with(u8":standing_sign")) {
       name = u8"oak_sign";
@@ -1592,7 +1592,7 @@ private:
     return Ns() + name;
   }
 
-  static String PistonArmCollision(String const &bName, CompoundTag const &s, Props &p) {
+  static String PistonArmCollision(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     bool sticky = (bName == u8"minecraft:stickyPistonArmCollision") || (bName == u8"minecraft:sticky_piston_arm_collision");
     std::u8string type = sticky ? u8"sticky" : u8"normal";
     auto f6 = Facing6FromBedrockFacingDirectionB(s.int32(u8"facing_direction", 0));
@@ -1603,7 +1603,7 @@ private:
     return Ns() + u8"piston_head";
   }
 
-  static String Stone(String const &bName, CompoundTag const &s, Props &p) {
+  static String Stone(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto type = s.string(u8"stone_type");
     if (type) {
       // legacy, < 1.20.5x
@@ -1623,7 +1623,7 @@ private:
     }
   }
 
-  static String Stonebrick(String const &bName, CompoundTag const &s, Props &p) {
+  static String Stonebrick(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto type = s.string(u8"stone_brick_type", u8"default");
     std::u8string prefix;
     if (type != u8"default") {
@@ -1632,19 +1632,19 @@ private:
     return Ns() + prefix + u8"stone_bricks";
   }
 
-  static String StonecutterBlock(String const &bName, CompoundTag const &s, Props &p) {
+  static String StonecutterBlock(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing4FromCardinalDirectionMigratingFacingDirectionA(s, p);
     return Ns() + u8"stonecutter";
   }
 
-  static String StoneSlab(String const &bName, CompoundTag const &s, Props &p) {
+  static String StoneSlab(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto stoneSlabType = s.string(u8"stone_slab_type", u8"stone");
     TypeFromVerticalHalfMigratingTopSlotBit(s, p);
     Submergible(s, p);
     return Ns() + stoneSlabType + u8"_slab";
   }
 
-  static String StoneSlab2(String const &bName, CompoundTag const &s, Props &p) {
+  static String StoneSlab2(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto type = s.string(u8"stone_slab_type_2", u8"prismarine_dark");
     TypeFromVerticalHalfMigratingTopSlotBit(s, p);
     Submergible(s, p);
@@ -1652,34 +1652,34 @@ private:
     return Ns() + name + u8"_slab";
   }
 
-  static String StoneSlab3(String const &bName, CompoundTag const &s, Props &p) {
+  static String StoneSlab3(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto stoneSlabType = s.string(u8"stone_slab_type_3", u8"andesite");
     TypeFromVerticalHalfMigratingTopSlotBit(s, p);
     Submergible(s, p);
     return Ns() + stoneSlabType + u8"_slab";
   }
 
-  static String StoneSlab4(String const &bName, CompoundTag const &s, Props &p) {
+  static String StoneSlab4(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto type = s.string(u8"stone_slab_type_4", u8"stone");
     TypeFromVerticalHalfMigratingTopSlotBit(s, p);
     Submergible(s, p);
     return Ns() + type + u8"_slab";
   }
 
-  static String StructureBlock(String const &bName, CompoundTag const &s, Props &p) {
+  static String StructureBlock(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto type = s.string(u8"structure_block_type", u8"save");
     p[u8"mode"] = type;
     return bName;
   }
 
-  static String SweetBerryBush(String const &bName, CompoundTag const &s, Props &p) {
+  static String SweetBerryBush(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     AgeFromGrowth(s, p);
     return bName;
   }
 #pragma endregion
 
 #pragma region Converters : T
-  static String Tallgrass(String const &bName, CompoundTag const &s, Props &p) {
+  static String Tallgrass(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto type = s.string(u8"tall_grass_type", u8"tall");
     if (type == u8"fern") {
       return Ns() + u8"fern";
@@ -1688,18 +1688,18 @@ private:
     }
   }
 
-  static String Target(String const &bName, CompoundTag const &s, Props &p) {
+  static String Target(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     p[u8"power"] = u8"0";
     return bName;
   }
 
-  static String Tnt(String const &bName, CompoundTag const &s, Props &p) {
+  static String Tnt(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto explode = s.boolean(u8"explode_bit", false);
     p[u8"unstable"] = Bool(explode);
     return bName;
   }
 
-  static String Trapdoor(String const &bName, CompoundTag const &s, Props &p) {
+  static String Trapdoor(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     FacingBFromDirection(s, p);
     OpenFromOpenBit(s, p);
     HalfFromUpsideDownBit(s, p);
@@ -1712,7 +1712,7 @@ private:
     }
   }
 
-  static String TrialSpawner(String const &bName, CompoundTag const &s, Props &p) {
+  static String TrialSpawner(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto stateB = s.int32(u8"trial_spawner_state", 0);
     auto stateJ = TrialSpawner::JavaTrialSpawnerStateFromBedrock(stateB);
     p[u8"trial_spawner_state"] = stateJ;
@@ -1722,7 +1722,7 @@ private:
     return bName;
   }
 
-  static String Tripwire(String const &bName, CompoundTag const &s, Props &p) {
+  static String Tripwire(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto attached = s.boolean(u8"attached_bit", false);
     auto disarmed = s.boolean(u8"disarmed_bit", false);
     auto powered = s.boolean(u8"powered_bit", false);
@@ -1732,7 +1732,7 @@ private:
     return Ns() + u8"tripwire";
   }
 
-  static String TripwireHook(String const &bName, CompoundTag const &s, Props &p) {
+  static String TripwireHook(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto attached = s.boolean(u8"attached_bit", false);
     auto powered = s.boolean(u8"powered_bit", false);
     Facing4FromDirectionA(s, p);
@@ -1741,7 +1741,7 @@ private:
     return bName;
   }
 
-  static String TurtleEgg(String const &bName, CompoundTag const &s, Props &p) {
+  static String TurtleEgg(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto eggs = s.string(u8"turtle_egg_count", u8"one_egg");
     if (eggs == u8"two_egg") {
       p[u8"eggs"] = u8"2";
@@ -1765,7 +1765,7 @@ private:
 #pragma endregion
 
 #pragma region Converters : V
-  static String Vault(String const &bName, CompoundTag const &s, Props &p) {
+  static String Vault(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     FacingFromCardinalDirection(s, p);
     auto ominous = s.boolean(u8"ominous");
     if (ominous) {
@@ -1778,7 +1778,7 @@ private:
 #pragma endregion
 
 #pragma region Converters : W
-  static String WallWithBlockType(String const &bName, CompoundTag const &s, Props &p) {
+  static String WallWithBlockType(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto type = s.string(u8"wall_block_type");
     std::u8string name;
     if (!type) {
@@ -1793,7 +1793,7 @@ private:
     return Ns() + name + u8"_wall";
   }
 
-  static String WoodLegacy(String const &bName, CompoundTag const &s, Props &p) {
+  static String WoodLegacy(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto stripped = s.boolean(u8"stripped_bit", false);
     auto woodType = s.string(u8"wood_type", u8"oak");
     auto name = stripped ? u8"stripped_" + woodType + u8"_wood" : woodType + u8"_wood";
@@ -1801,20 +1801,20 @@ private:
     return Ns() + name;
   }
 
-  static String WoodenPressurePlate(String const &bName, CompoundTag const &s, Props &p) {
+  static String WoodenPressurePlate(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto signal = s.int32(u8"redstone_signal", 0);
     p[u8"powered"] = Bool(signal > 0);
     return Ns() + u8"oak_pressure_plate";
   }
 
-  static String WoodenSlab(String const &bName, CompoundTag const &s, Props &p) {
+  static String WoodenSlab(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto woodType = s.string(u8"wood_type", u8"acacia");
     TypeFromVerticalHalfMigratingTopSlotBit(s, p);
     Submergible(s, p);
     return Ns() + woodType + u8"_slab";
   }
 
-  static String LegacyWool(String const &bName, CompoundTag const &s, Props &p) {
+  static String LegacyWool(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto colorB = s.string(u8"color", u8"white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
     return Ns() + colorJ + u8"_wool";
@@ -1822,7 +1822,7 @@ private:
 #pragma endregion
 
 #pragma region Converters : V
-  static String Vine(String const &bName, CompoundTag const &s, Props &p) {
+  static String Vine(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto d = s.int32(u8"vine_direction_bits", 0);
     bool east = (d & 0x8) == 0x8;
     bool north = (d & 0x4) == 0x4;
@@ -2053,7 +2053,7 @@ private:
   }
 
   static Converter Torch(std::u8string prefix) {
-    return [prefix](String const &bName, CompoundTag const &s, Props &p) -> String {
+    return [prefix](String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) -> String {
       auto t = s.string(u8"torch_facing_direction", u8"top");
       std::u8string f;
       if (t == u8"top" || t == u8"unknown") {
