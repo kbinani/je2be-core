@@ -4,6 +4,7 @@
 #include <je2be/strings.hpp>
 
 #include "_closed-range.hpp"
+#include "_java-data-versions.hpp"
 #include "_namespace.hpp"
 #include "bedrock/_legacy-block.hpp"
 #include "block/_trial-spawner.hpp"
@@ -456,12 +457,6 @@ private:
     auto berries = bName.ends_with(u8"_with_berries");
     p[u8"berries"] = Bool(berries);
     return Ns() + u8"cave_vines_plant";
-  }
-
-  static String Chain(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
-    AxisFromPillarAxis(s, p);
-    Submergible(s, p);
-    return Ns() + u8"chain";
   }
 
   static String ChiseledBookshelf(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
@@ -941,6 +936,18 @@ private:
     auto toggle = s.boolean(u8"toggle_bit", false);
     p[u8"enabled"] = Bool(!toggle);
     return bName;
+  }
+#pragma endregion
+
+#pragma region Converters : I
+  static String IronChain(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
+    AxisFromPillarAxis(s, p);
+    Submergible(s, p);
+    if (outputDataVersion >= (int)JavaDataVersions::Snapshot25w32a) {
+      return Ns() + u8"iron_chain";
+    } else {
+      return Ns() + u8"chain";
+    }
   }
 #pragma endregion
 
@@ -2788,8 +2795,8 @@ private:
     E(cave_vines_with_berries, CaveVines);
     E(cave_vines_head_with_berries, CaveVines);
     E(cave_vines_body_with_berries, CaveVinesBody);
-    E(chain, Chain); // legacy
-    E(iron_chain, Chain);
+    E(chain, IronChain); // legacy
+    E(iron_chain, IronChain);
     E(chain_command_block, CommandBlock);
     E(command_block, CommandBlock);
     E(chest, BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible);
