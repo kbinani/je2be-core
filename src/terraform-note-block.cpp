@@ -378,6 +378,7 @@ public:
     case acacia_log:
     case acacia_planks:
     case acacia_pressure_plate:
+    case acacia_shelf:
     case acacia_sign:
     case acacia_slab:
     case acacia_stairs:
@@ -395,6 +396,7 @@ public:
     case bamboo_mosaic_stairs:
     case bamboo_planks:
     case bamboo_pressure_plate:
+    case bamboo_shelf:
     case bamboo_sign:
     case bamboo_slab:
     case bamboo_stairs:
@@ -411,6 +413,7 @@ public:
     case birch_log:
     case birch_planks:
     case birch_pressure_plate:
+    case birch_shelf:
     case birch_sign:
     case birch_slab:
     case birch_stairs:
@@ -435,6 +438,7 @@ public:
     case cherry_log:
     case cherry_planks:
     case cherry_pressure_plate:
+    case cherry_shelf:
     case cherry_sign:
     case cherry_slab:
     case cherry_stairs:
@@ -453,6 +457,7 @@ public:
     case crimson_hyphae:
     case crimson_planks:
     case crimson_pressure_plate:
+    case crimson_shelf:
     case crimson_sign:
     case crimson_slab:
     case crimson_stairs:
@@ -469,6 +474,7 @@ public:
     case dark_oak_log:
     case dark_oak_planks:
     case dark_oak_pressure_plate:
+    case dark_oak_shelf:
     case dark_oak_sign:
     case dark_oak_slab:
     case dark_oak_stairs:
@@ -490,6 +496,7 @@ public:
     case jungle_log:
     case jungle_planks:
     case jungle_pressure_plate:
+    case jungle_shelf:
     case jungle_sign:
     case jungle_slab:
     case jungle_stairs:
@@ -515,6 +522,7 @@ public:
     case mangrove_planks:
     case mangrove_pressure_plate:
     case mangrove_roots:
+    case mangrove_shelf:
     case mangrove_sign:
     case mangrove_slab:
     case mangrove_stairs:
@@ -531,6 +539,7 @@ public:
     case oak_log:
     case oak_planks:
     case oak_pressure_plate:
+    case oak_shelf:
     case oak_sign:
     case oak_slab:
     case oak_stairs:
@@ -547,6 +556,7 @@ public:
     case pale_oak_log:
     case pale_oak_planks:
     case pale_oak_pressure_plate:
+    case pale_oak_shelf:
     case pale_oak_sign:
     case pale_oak_slab:
     case pale_oak_stairs:
@@ -570,6 +580,7 @@ public:
     case spruce_log:
     case spruce_planks:
     case spruce_pressure_plate:
+    case spruce_shelf:
     case spruce_sign:
     case spruce_slab:
     case spruce_stairs:
@@ -608,6 +619,7 @@ public:
     case warped_hyphae:
     case warped_planks:
     case warped_pressure_plate:
+    case warped_shelf:
     case warped_sign:
     case warped_slab:
     case warped_stairs:
