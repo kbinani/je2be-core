@@ -1785,7 +1785,7 @@ public:
     E(light, Light);
     E(cave_vines, CaveVines);
     E(cave_vines_plant, CaveVinesPlant);
-    E(chain, Chain);
+    E(iron_chain, Chain);
 
     E(bamboo_sapling, sapling);
     E(brewing_stand, BrewingStand);
