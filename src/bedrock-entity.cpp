@@ -1120,10 +1120,17 @@ public:
     auto armorsB = b.listTag(u8"Armor");
     std::vector<CompoundTagPtr> armorsJ;
     auto chancesJ = List<Tag::Type::Float>();
+    auto chancesB = b.listTag(u8"SlotDropChances");
     if (armorsB) {
       std::vector<CompoundTagPtr> armors;
       std::vector<FloatTagPtr> chances;
-      for (auto const &it : *armorsB) {
+      for (size_t i = 0; i < armorsB->size(); i++) {
+        if (i > 3) {
+          break;
+        }
+        std::vector<std::u8string> slotNames = {u8"feet", u8"legs", u8"chest", u8"head"};
+        auto slotName = slotNames[i];
+        auto const &it = armorsB->fValue[i];
         auto armorB = it->asCompound();
         CompoundTagPtr armorJ;
         if (armorB) {
@@ -1133,7 +1140,23 @@ public:
           armorJ = Compound();
         }
         armors.push_back(armorJ);
-        chances.push_back(Float(0.085f));
+        float chance = 0.085f;
+        if (chancesB) {
+          for (auto const &j : *chancesB) {
+            auto c = j->asCompound();
+            if (!c) {
+              continue;
+            }
+            if (c->string(u8"Slot") != slotName) {
+              continue;
+            }
+            if (auto chanceB = c->float32(u8"DropChance"); chanceB) {
+              chance = *chanceB;
+            }
+            break;
+          }
+        }
+        chances.push_back(Float(chance));
       }
       if (armors.size() >= 4) {
         armorsJ.push_back(armors[3]); // boots
