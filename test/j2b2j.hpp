@@ -4,6 +4,8 @@
 
 using namespace mcfile::u8stream;
 
+#define J2B2J_MAX_CHUNK_X (30)
+
 static std::mutex sMutCerr;
 
 static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &actual);
@@ -1335,7 +1337,7 @@ static void CheckChunkJ(mcfile::je::Region const &regionE, mcfile::je::Region co
   REQUIRE(heightMapsA);
   CheckHeightmapsJ(*heightMapsE, *heightMapsA);
 
-  if (0 <= chunkE->fChunkX && chunkE->fChunkX <= 23 && 0 <= chunkE->fChunkZ && chunkE->fChunkZ <= 1) {
+  if (0 <= chunkE->fChunkX && chunkE->fChunkX <= J2B2J_MAX_CHUNK_X && 0 <= chunkE->fChunkZ && chunkE->fChunkZ <= 1) {
     // SkyLight and BlockLight sometimes have wrong value, so check light only for limited chunks
     CheckChunkLightJ(*chunkE, *chunkA, dim);
   }
@@ -1592,7 +1594,7 @@ static void TestJavaToBedrockToJava(fs::path in) {
 #else
   optB.fDimensionFilter.insert(mcfile::Dimension::Overworld);
 #if 1
-  for (int cx = 0; cx <= 29; cx++) {
+  for (int cx = 0; cx <= J2B2J_MAX_CHUNK_X; cx++) {
     chunks.insert({cx, 0});
   }
 #else
