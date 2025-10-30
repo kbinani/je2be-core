@@ -971,12 +971,36 @@ private:
       m.fTransparency = TRANSLUCENT;
       m.fModel = MODEL_HALF_BOTTOM;
       return m;
-    } else if (block.fId == sculk_sensor) {
+    } else if (block.fId == sculk_sensor || block.fId == calibrated_sculk_sensor) {
       LightingModel m;
       m.fEmission = 1;
       m.fTransparency = TRANSLUCENT;
       m.fModel = MODEL_HALF_BOTTOM;
       m.fBehaveAsAirWhenOpenUp = true;
+      return m;
+    } else if (block.fName.ends_with(u8"copper_grate")) {
+      // copper_grate doesn't attenuate light even when waterlogged
+      LightingModel m;
+      return m;
+    } else if (block.fName.ends_with(u8"_shelf")) {
+      auto facing = Facing4FromJavaName(block.property(u8"facing", u8"north"));
+      LightingModel m;
+      m.fTransparency = TRANSLUCENT;
+      switch (facing) {
+      case Facing4::North:
+        m.fModel = MASK_SOUTH;
+        break;
+      case Facing4::East:
+        m.fModel = MASK_WEST;
+        break;
+      case Facing4::West:
+        m.fModel = MASK_EAST;
+        break;
+      case Facing4::South:
+      default:
+        m.fModel = MASK_NORTH;
+        break;
+      }
       return m;
     }
     int amount = 0;
@@ -1718,6 +1742,7 @@ private:
     case tall_dry_grass:
     case cactus_flower:
     case dried_ghast:
+    case resin_clump:
     case oak_shelf:
     case spruce_shelf:
     case birch_shelf:
@@ -1826,7 +1851,6 @@ private:
     case trial_spawner:
     case vault:
     case pale_oak_leaves:
-    case resin_clump:
     case test_instance_block:
       return 1;
     default:
