@@ -459,6 +459,12 @@ private:
     return Ns() + u8"cave_vines_plant";
   }
 
+  static String Chain(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
+    AxisFromPillarAxis(s, p);
+    Submergible(s, p);
+    return bName;
+  }
+
   static String ChiseledBookshelf(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     Facing4FromDirectionA(s, p);
     auto stored = s.int32(u8"books_stored", 0);
@@ -3316,6 +3322,14 @@ private:
     E(waxed_exposed_copper_lantern, Lantern);
     E(waxed_weathered_copper_lantern, Lantern);
     E(waxed_oxidized_copper_lantern, Lantern);
+    E(copper_chain, Chain);
+    E(exposed_copper_chain, Chain);
+    E(weathered_copper_chain, Chain);
+    E(oxidized_copper_chain, Chain);
+    E(waxed_copper_chain, Chain);
+    E(waxed_exposed_copper_chain, Chain);
+    E(waxed_weathered_copper_chain, Chain);
+    E(waxed_oxidized_copper_chain, Chain);
 #undef E
 
     return table;

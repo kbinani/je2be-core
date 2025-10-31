@@ -1987,6 +1987,14 @@ public:
     E(waxed_exposed_copper_lantern, lantern);
     E(waxed_weathered_copper_lantern, lantern);
     E(waxed_oxidized_copper_lantern, lantern);
+    E(copper_chain, Chain);
+    E(exposed_copper_chain, Chain);
+    E(weathered_copper_chain, Chain);
+    E(oxidized_copper_chain, Chain);
+    E(waxed_copper_chain, Chain);
+    E(waxed_exposed_copper_chain, Chain);
+    E(waxed_weathered_copper_chain, Chain);
+    E(waxed_oxidized_copper_chain, Chain);
 #undef E
 
     return table;
@@ -2401,7 +2409,7 @@ public:
   }
 
   static CompoundTagPtr Chain(Block const &b, CompoundTagConstPtr const &, Options const &o) {
-    auto c = New(u8"iron_chain");
+    auto c = New(b.fName, true);
     auto s = States();
     AxisToPillarAxis(s, b, o);
     return AttachStates(c, s);
