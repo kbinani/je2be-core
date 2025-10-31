@@ -1774,7 +1774,8 @@ public:
     E(deepslate_brick_wall, wall);
     E(deepslate_tile_wall, wall);
 
-    E(lightning_rod, Converter(Same, FacingDirectionAFromFacing, Name(Powered, u8"powered_bit")););
+    Converter lightningRod(Same, FacingDirectionAFromFacing, Name(Powered, u8"powered_bit"));
+    E(lightning_rod, lightningRod);
 
     E(small_amethyst_bud, blockFaceFromFacing);
     E(medium_amethyst_bud, blockFaceFromFacing);
@@ -1995,6 +1996,13 @@ public:
     E(waxed_exposed_copper_chain, Chain);
     E(waxed_weathered_copper_chain, Chain);
     E(waxed_oxidized_copper_chain, Chain);
+    E(exposed_lightning_rod, lightningRod);
+    E(weathered_lightning_rod, lightningRod);
+    E(oxidized_lightning_rod, lightningRod);
+    E(waxed_lightning_rod, lightningRod);
+    E(waxed_exposed_lightning_rod, lightningRod);
+    E(waxed_weathered_lightning_rod, lightningRod);
+    E(waxed_oxidized_lightning_rod, lightningRod);
 #undef E
 
     return table;

@@ -3330,6 +3330,13 @@ private:
     E(waxed_exposed_copper_chain, Chain);
     E(waxed_weathered_copper_chain, Chain);
     E(waxed_oxidized_copper_chain, Chain);
+    E(exposed_lightning_rod, LightningRod);
+    E(weathered_lightning_rod, LightningRod);
+    E(oxidized_lightning_rod, LightningRod);
+    E(waxed_lightning_rod, LightningRod);
+    E(waxed_exposed_lightning_rod, LightningRod);
+    E(waxed_weathered_lightning_rod, LightningRod);
+    E(waxed_oxidized_lightning_rod, LightningRod);
 #undef E
 
     return table;
