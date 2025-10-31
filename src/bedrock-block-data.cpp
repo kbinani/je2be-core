@@ -3307,6 +3307,7 @@ private:
     E(bamboo_shelf, Shelf);
     E(crimson_shelf, Shelf);
     E(warped_shelf, Shelf);
+    E(copper_torch, Torch(u8"copper_"));
 #undef E
 
     return table;

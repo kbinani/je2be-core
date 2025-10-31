@@ -1977,6 +1977,8 @@ public:
     E(bamboo_shelf, Shelf);
     E(crimson_shelf, Shelf);
     E(warped_shelf, Shelf);
+    E(copper_wall_torch, AnyWallTorch(u8"copper_"));
+    E(copper_torch, AnyTorch(u8"copper_"));
 #undef E
 
     return table;
