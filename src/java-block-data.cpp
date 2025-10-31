@@ -1979,6 +1979,14 @@ public:
     E(warped_shelf, Shelf);
     E(copper_wall_torch, AnyWallTorch(u8"copper_"));
     E(copper_torch, AnyTorch(u8"copper_"));
+    E(copper_lantern, lantern);
+    E(exposed_copper_lantern, lantern);
+    E(weathered_copper_lantern, lantern);
+    E(oxidized_copper_lantern, lantern);
+    E(waxed_copper_lantern, lantern);
+    E(waxed_exposed_copper_lantern, lantern);
+    E(waxed_weathered_copper_lantern, lantern);
+    E(waxed_oxidized_copper_lantern, lantern);
 #undef E
 
     return table;

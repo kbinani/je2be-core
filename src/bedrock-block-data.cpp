@@ -3308,6 +3308,14 @@ private:
     E(crimson_shelf, Shelf);
     E(warped_shelf, Shelf);
     E(copper_torch, Torch(u8"copper_"));
+    E(copper_lantern, Lantern);
+    E(exposed_copper_lantern, Lantern);
+    E(weathered_copper_lantern, Lantern);
+    E(oxidized_copper_lantern, Lantern);
+    E(waxed_copper_lantern, Lantern);
+    E(waxed_exposed_copper_lantern, Lantern);
+    E(waxed_weathered_copper_lantern, Lantern);
+    E(waxed_oxidized_copper_lantern, Lantern);
 #undef E
 
     return table;
