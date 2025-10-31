@@ -1485,6 +1485,28 @@ private:
     return bName;
   }
 
+  static String Shelf(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
+    switch (s.int32(u8"powered_shelf_type", 0)) {
+    case 1:
+      p[u8"side_chain"] = u8"right";
+      break;
+    case 2:
+      p[u8"side_chain"] = u8"center";
+      break;
+    case 3:
+      p[u8"side_chain"] = u8"left";
+      break;
+    case 0:
+    default:
+      p[u8"side_chain"] = u8"unconnected";
+      break;
+    }
+    p[u8"powered"] = Bool(s.boolean(u8"powered_bit", false));
+    FacingFromCardinalDirection(s, p);
+    Submergible(s, p);
+    return bName;
+  }
+
   static String ShulkerBoxLegacy(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto colorB = s.string(u8"color", u8"white");
     auto colorJ = JavaNameFromColorCodeJava(ColorCodeJavaFromBedrockName(colorB));
@@ -3272,6 +3294,19 @@ private:
     E(dried_ghast, DriedGhast);
     E(wildflowers, FlowerCarpet);
     E(leaf_litter, LeafLitter);
+
+    E(oak_shelf, Shelf);
+    E(spruce_shelf, Shelf);
+    E(birch_shelf, Shelf);
+    E(jungle_shelf, Shelf);
+    E(acacia_shelf, Shelf);
+    E(dark_oak_shelf, Shelf);
+    E(mangrove_shelf, Shelf);
+    E(cherry_shelf, Shelf);
+    E(pale_oak_shelf, Shelf);
+    E(bamboo_shelf, Shelf);
+    E(crimson_shelf, Shelf);
+    E(warped_shelf, Shelf);
 #undef E
 
     return table;

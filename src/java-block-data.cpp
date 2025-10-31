@@ -1964,6 +1964,19 @@ public:
     E(leaf_litter, LeafLitter);
     E(test_block, Rename(u8"air"));
     E(test_instance_block, Rename(u8"air"));
+
+    E(oak_shelf, Shelf);
+    E(spruce_shelf, Shelf);
+    E(birch_shelf, Shelf);
+    E(jungle_shelf, Shelf);
+    E(acacia_shelf, Shelf);
+    E(dark_oak_shelf, Shelf);
+    E(mangrove_shelf, Shelf);
+    E(cherry_shelf, Shelf);
+    E(pale_oak_shelf, Shelf);
+    E(bamboo_shelf, Shelf);
+    E(crimson_shelf, Shelf);
+    E(warped_shelf, Shelf);
 #undef E
 
     return table;
@@ -2394,6 +2407,29 @@ public:
 
   static void Debug(CompoundTagPtr const &s, Block const &b, Options const &o) {
     (void)s;
+  }
+
+  static CompoundTagPtr Shelf(Block const &b, CompoundTagConstPtr const &, Options const &o) {
+    auto c = New(b.fName, true);
+    auto s = States();
+    CardinalDirectionFromFacing4(s, b, o);
+    // 3: left
+    // 2: center
+    // 1: right
+    // 0: unconnected
+    auto sideChain = b.property(u8"side_chain", u8"unconnected");
+    int poweredShelfType = 0;
+    if (sideChain == u8"left") {
+      poweredShelfType = 3;
+    } else if (sideChain == u8"center") {
+      poweredShelfType = 2;
+    } else if (sideChain == u8"right") {
+      poweredShelfType = 1;
+    }
+    s->set(u8"powered_shelf_type", Int(poweredShelfType));
+    auto powered = b.property(u8"powered", u8"false") == u8"true";
+    s->set(u8"powered_bit", Bool(powered));
+    return AttachStates(c, s);
   }
 
   static CompoundTagPtr PointedDripstone(Block const &b, CompoundTagConstPtr const &, Options const &o) {
