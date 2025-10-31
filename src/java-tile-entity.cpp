@@ -360,6 +360,15 @@ private:
     E(potted_open_eyeblossom, PottedPlant(u8"open_eyeblossom", {}));
     E(potted_closed_eyeblossom, PottedPlant(u8"closed_eyeblossom", {}));
     E(potted_pale_oak_sapling, PottedPlant(u8"pale_oak_sapling", {{u8"age_bit", i8(0)}}));
+
+    E(copper_chest, Chest);
+    E(exposed_copper_chest, Chest);
+    E(weathered_copper_chest, Chest);
+    E(oxidized_copper_chest, Chest);
+    E(waxed_copper_chest, Chest);
+    E(waxed_exposed_copper_chest, Chest);
+    E(waxed_weathered_copper_chest, Chest);
+    E(waxed_oxidized_copper_chest, Chest);
 #undef E
     return table;
   }

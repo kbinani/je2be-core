@@ -1363,6 +1363,15 @@ public:
     E(pale_oak_standing_sign, sign);
     E(pale_oak_wall_sign, sign);
     E(pale_oak_hanging_sign, hangingSign);
+
+    E(copper_chest, Chest);
+    E(exposed_copper_chest, Chest);
+    E(weathered_copper_chest, Chest);
+    E(oxidized_copper_chest, Chest);
+    E(waxed_copper_chest, Chest);
+    E(waxed_exposed_copper_chest, Chest);
+    E(waxed_weathered_copper_chest, Chest);
+    E(waxed_oxidized_copper_chest, Chest);
 #undef E
     return t;
   }

@@ -1272,7 +1272,8 @@ public:
     E(dark_oak_fence, Identity);
     E(bamboo_fence, Identity);
     E(ladder, facingDirectionFromFacingA);
-    E(chest, Converter(Same, CardinalDirectionFromFacing4ByItemDefault(Facing4::North)));
+    Converter chest(Same, CardinalDirectionFromFacing4ByItemDefault(Facing4::North));
+    E(chest, chest);
     E(furnace, Converter(PrefixLit, CardinalDirectionFromFacing4));
     E(nether_bricks, Rename(u8"nether_brick"));
     E(infested_stone, Identity);                 // InfestedStone(u8"stone")) for 1.21.50.29
@@ -1622,7 +1623,7 @@ public:
     E(bamboo_button, button);
 
     E(tripwire_hook, Converter(Same, DirectionFromFacingA, Name(Attached, u8"attached_bit"), Name(Powered, u8"powered_bit")));
-    E(trapped_chest, Converter(Same, CardinalDirectionFromFacing4ByItemDefault(Facing4::North)));
+    E(trapped_chest, chest);
     E(daylight_detector, Converter(DaylightDetectorName, Name(Power, u8"redstone_signal")));
     E(hopper, Converter(Same, FacingDirectionAFromFacing, ToggleBitFromEnabled));
     E(dropper, Converter(Same, FacingDirectionAFromFacingByItemDefault(3), Name(Triggered, u8"triggered_bit")));
@@ -1664,7 +1665,7 @@ public:
 
     E(cobweb, Converter(Name(u8"web")));
     E(lectern, Converter(Same, CardinalDirectionFromFacing4, Name(Powered, u8"powered_bit")));
-    E(ender_chest, Converter(Same, CardinalDirectionFromFacing4ByItemDefault(Facing4::North)));
+    E(ender_chest, chest);
     E(bone_block, Converter(Same, AxisToPillarAxis, AddIntProperty(u8"deprecated", 0)));
     E(cauldron, Converter(Name(u8"cauldron"), AddIntProperty(u8"fill_level", 0), AddStringProperty(u8"cauldron_liquid", u8"water")));
     E(water_cauldron, Converter(Name(u8"cauldron"), CauldronFillLevelFromLevel, AddStringProperty(u8"cauldron_liquid", u8"water")));
@@ -2003,6 +2004,14 @@ public:
     E(waxed_exposed_lightning_rod, lightningRod);
     E(waxed_weathered_lightning_rod, lightningRod);
     E(waxed_oxidized_lightning_rod, lightningRod);
+    E(copper_chest, chest);
+    E(exposed_copper_chest, chest);
+    E(weathered_copper_chest, chest);
+    E(oxidized_copper_chest, chest);
+    E(waxed_copper_chest, chest);
+    E(waxed_exposed_copper_chest, chest);
+    E(waxed_weathered_copper_chest, chest);
+    E(waxed_oxidized_copper_chest, chest);
 #undef E
 
     return table;

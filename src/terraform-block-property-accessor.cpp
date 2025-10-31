@@ -205,11 +205,20 @@ public:
   }
 
   static bool IsChest(mcfile::be::Block const &b) {
-    return b.fName == u8"minecraft:chest" || b.fName == u8"minecraft:trapped_chest";
+    return b.fName == u8"minecraft:chest" || b.fName == u8"minecraft:trapped_chest" || b.fName.ends_with(u8"copper_chest");
   }
 
   static bool IsChest(mcfile::je::Block const &b) {
-    return b.fId == mcfile::blocks::minecraft::chest || b.fId == mcfile::blocks::minecraft::trapped_chest;
+    return b.fId == mcfile::blocks::minecraft::chest                           //
+           || b.fId == mcfile::blocks::minecraft::trapped_chest                //
+           || b.fId == mcfile::blocks::minecraft::copper_chest                 //
+           || b.fId == mcfile::blocks::minecraft::exposed_copper_chest         //
+           || b.fId == mcfile::blocks::minecraft::weathered_copper_chest       //
+           || b.fId == mcfile::blocks::minecraft::oxidized_copper_chest        //
+           || b.fId == mcfile::blocks::minecraft::waxed_copper_chest           //
+           || b.fId == mcfile::blocks::minecraft::waxed_exposed_copper_chest   //
+           || b.fId == mcfile::blocks::minecraft::waxed_weathered_copper_chest //
+           || b.fId == mcfile::blocks::minecraft::waxed_oxidized_copper_chest;
   }
 
   static bool IsNetherPortal(mcfile::je::Block const &b) {

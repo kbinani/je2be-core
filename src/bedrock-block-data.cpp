@@ -3337,6 +3337,14 @@ private:
     E(waxed_exposed_lightning_rod, LightningRod);
     E(waxed_weathered_lightning_rod, LightningRod);
     E(waxed_oxidized_lightning_rod, LightningRod);
+    E(copper_chest, BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible);
+    E(exposed_copper_chest, BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible);
+    E(weathered_copper_chest, BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible);
+    E(oxidized_copper_chest, BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible);
+    E(waxed_copper_chest, BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible);
+    E(waxed_exposed_copper_chest, BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible);
+    E(waxed_weathered_copper_chest, BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible);
+    E(waxed_oxidized_copper_chest, BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible);
 #undef E
 
     return table;

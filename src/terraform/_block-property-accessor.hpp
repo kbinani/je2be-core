@@ -36,7 +36,7 @@ public:
     DOOR = 19,
     WALL = 20,
     LEAVES = 21,
-    CHEST = 22, // chest or trapped_chest
+    CHEST = 22, // chest or trapped_chest or copper_chest
     NETHER_PORTAL = 23,
     BED = 24,
     DOUBLE_PLANT_UPPER_SUNFLOWER = 25,
