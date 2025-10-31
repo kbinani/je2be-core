@@ -2012,6 +2012,14 @@ public:
     E(waxed_exposed_copper_chest, chest);
     E(waxed_weathered_copper_chest, chest);
     E(waxed_oxidized_copper_chest, chest);
+    E(copper_golem_statue, cardinalDirectionFromFacing4);
+    E(exposed_copper_golem_statue, cardinalDirectionFromFacing4);
+    E(weathered_copper_golem_statue, cardinalDirectionFromFacing4);
+    E(oxidized_copper_golem_statue, cardinalDirectionFromFacing4);
+    E(waxed_copper_golem_statue, cardinalDirectionFromFacing4);
+    E(waxed_exposed_copper_golem_statue, cardinalDirectionFromFacing4);
+    E(waxed_weathered_copper_golem_statue, cardinalDirectionFromFacing4);
+    E(waxed_oxidized_copper_golem_statue, cardinalDirectionFromFacing4);
 #undef E
 
     return table;

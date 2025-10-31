@@ -525,6 +525,12 @@ private:
     return bName;
   }
 
+  static String CopperGolemStatue(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
+    FacingFromCardinalDirection(s, p);
+    Submergible(s, p);
+    return bName;
+  }
+
   static String CoralLegacy(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto color = s.string(u8"coral_color", u8"pink");
     auto dead = s.boolean(u8"dead_bit", false);
@@ -3345,6 +3351,14 @@ private:
     E(waxed_exposed_copper_chest, BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible);
     E(waxed_weathered_copper_chest, BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible);
     E(waxed_oxidized_copper_chest, BlockWithFacing4FromCardinalDirectionMigratingFacingDirectionASubmergible);
+    E(copper_golem_statue, CopperGolemStatue);
+    E(exposed_copper_golem_statue, CopperGolemStatue);
+    E(weathered_copper_golem_statue, CopperGolemStatue);
+    E(oxidized_copper_golem_statue, CopperGolemStatue);
+    E(waxed_copper_golem_statue, CopperGolemStatue);
+    E(waxed_exposed_copper_golem_statue, CopperGolemStatue);
+    E(waxed_weathered_copper_golem_statue, CopperGolemStatue);
+    E(waxed_oxidized_copper_golem_statue, CopperGolemStatue);
 #undef E
 
     return table;

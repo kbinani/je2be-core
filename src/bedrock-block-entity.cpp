@@ -404,6 +404,30 @@ public:
     return r;
   }
 
+  static std::optional<Result> CopperGolemStatue(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
+    auto t = EmptyShortName(u8"copper_golem_statue", pos);
+    Result r;
+    r.fTileEntity = t;
+    std::u8string poseJ;
+    switch (tagB.int32(u8"Pose", 0)) {
+    case 1:
+      poseJ = u8"sitting";
+      break;
+    case 2:
+      poseJ = u8"running";
+      break;
+    case 3:
+      poseJ = u8"star";
+      break;
+    case 0:
+    default:
+      poseJ = u8"standing";
+      break;
+    }
+    r.fBlock = blockJ.applying({{u8"copper_golem_pose", poseJ}});
+    return r;
+  }
+
   static std::optional<Result> Crafter(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
     auto t = EmptyShortName(u8"crafter", pos);
     Result r;
@@ -1372,6 +1396,14 @@ public:
     E(waxed_exposed_copper_chest, Chest);
     E(waxed_weathered_copper_chest, Chest);
     E(waxed_oxidized_copper_chest, Chest);
+    E(copper_golem_statue, CopperGolemStatue);
+    E(exposed_copper_golem_statue, CopperGolemStatue);
+    E(weathered_copper_golem_statue, CopperGolemStatue);
+    E(oxidized_copper_golem_statue, CopperGolemStatue);
+    E(waxed_copper_golem_statue, CopperGolemStatue);
+    E(waxed_exposed_copper_golem_statue, CopperGolemStatue);
+    E(waxed_weathered_copper_golem_statue, CopperGolemStatue);
+    E(waxed_oxidized_copper_golem_statue, CopperGolemStatue);
 #undef E
     return t;
   }

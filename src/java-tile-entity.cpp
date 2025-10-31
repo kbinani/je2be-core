@@ -369,6 +369,14 @@ private:
     E(waxed_exposed_copper_chest, Chest);
     E(waxed_weathered_copper_chest, Chest);
     E(waxed_oxidized_copper_chest, Chest);
+    E(copper_golem_statue, CopperGolemStatue);
+    E(exposed_copper_golem_statue, CopperGolemStatue);
+    E(weathered_copper_golem_statue, CopperGolemStatue);
+    E(oxidized_copper_golem_statue, CopperGolemStatue);
+    E(waxed_copper_golem_statue, CopperGolemStatue);
+    E(waxed_exposed_copper_golem_statue, CopperGolemStatue);
+    E(waxed_weathered_copper_golem_statue, CopperGolemStatue);
+    E(waxed_oxidized_copper_golem_statue, CopperGolemStatue);
 #undef E
     return table;
   }
@@ -1831,6 +1839,28 @@ private:
     }
     Attach(comp, pos, *tag);
     return tag;
+  }
+
+  static CompoundTagPtr CopperGolemStatue(Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &j, Context &ctx, DataVersion const &dataVersion) {
+    auto tagB = Compound();
+    auto actor = Compound();
+    actor->set(u8"ActorIdentifier", String(u8"minecraft:copper_golem<>"));
+    actor->set(u8"SaveData", Compound());
+    tagB->set(u8"Actor", actor);
+    tagB->set(u8"id", String(u8"CopperGolemStatue"));
+    tagB->set(u8"isMovable", Bool(true));
+    auto poseJ = b.property(u8"copper_golem_pose", u8"standing");
+    int poseB = 0;
+    if (poseJ == u8"sitting") {
+      poseB = 1;
+    } else if (poseJ == u8"running") {
+      poseB = 2;
+    } else if (poseJ == u8"star") {
+      poseB = 3;
+    }
+    tagB->set(u8"Pose", Int(poseB));
+    Attach(j, pos, *tagB);
+    return tagB;
   }
 
   static Converter Furnace(std::u8string id) {
