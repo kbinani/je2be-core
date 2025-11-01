@@ -1001,6 +1001,7 @@ private:
         m.fModel = MASK_NORTH;
         break;
       }
+      m.fBehaveAsAirWhenOpenUp = true;
       return m;
     }
     int amount = 0;
