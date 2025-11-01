@@ -1119,16 +1119,16 @@ public:
   static void ArmorItems(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto armorsB = b.listTag(u8"Armor");
     std::vector<CompoundTagPtr> armorsJ;
-    auto chancesJ = List<Tag::Type::Float>();
+    std::vector<float> chancesJ;
     auto chancesB = b.listTag(u8"SlotDropChances");
     if (armorsB) {
       std::vector<CompoundTagPtr> armors;
-      std::vector<FloatTagPtr> chances;
+      std::vector<float> chances;
       for (size_t i = 0; i < armorsB->size(); i++) {
         if (i > 3) {
           break;
         }
-        std::vector<std::u8string> slotNames = {u8"feet", u8"legs", u8"chest", u8"head"};
+        std::vector<std::u8string> slotNames = {u8"head", u8"chest", u8"legs", u8"feet"};
         auto slotName = slotNames[i];
         auto const &it = armorsB->fValue[i];
         auto armorB = it->asCompound();
@@ -1156,7 +1156,7 @@ public:
             break;
           }
         }
-        chances.push_back(Float(chance));
+        chances.push_back(chance);
       }
       if (armors.size() >= 4) {
         armorsJ.push_back(armors[3]); // boots
@@ -1164,10 +1164,10 @@ public:
         armorsJ.push_back(armors[1]); // chestplate
         armorsJ.push_back(armors[0]); // helmet
 
-        chancesJ->push_back(chances[3]);
-        chancesJ->push_back(chances[2]);
-        chancesJ->push_back(chances[1]);
-        chancesJ->push_back(chances[0]);
+        chancesJ.push_back(chances[3]);
+        chancesJ.push_back(chances[2]);
+        chancesJ.push_back(chances[1]);
+        chancesJ.push_back(chances[0]);
       }
     }
     if (dataVersion > (int)JavaDataVersions::Snapshot25w02a) {
@@ -1179,18 +1179,22 @@ public:
         auto boots = armorsJ[0];
         if (boots && !boots->empty()) {
           AddEquipment(j, u8"feet", boots);
+          AddDropChance(j, u8"feet", chancesJ[0]);
         }
         auto leggings = armorsJ[1];
         if (leggings && !leggings->empty()) {
           AddEquipment(j, u8"legs", leggings);
+          AddDropChance(j, u8"legs", chancesJ[1]);
         }
         auto chestplate = armorsJ[2];
         if (chestplate && !chestplate->empty()) {
           AddEquipment(j, u8"chest", chestplate);
+          AddDropChance(j, u8"chest", chancesJ[2]);
         }
         auto helmet = armorsJ[3];
         if (helmet && !helmet->empty()) {
           AddEquipment(j, u8"head", helmet);
+          AddDropChance(j, u8"head", chancesJ[3]);
         }
       }
     } else {
@@ -1201,7 +1205,11 @@ public:
         armorItemsJ->push_back(it);
       }
       j[u8"ArmorItems"] = armorItemsJ;
-      j[u8"ArmorDropChances"] = chancesJ;
+      auto armorDropChances = List<Tag::Type::Float>();
+      for (auto chance : chancesJ) {
+        armorDropChances->push_back(Float(chance));
+      }
+      j[u8"ArmorDropChances"] = armorDropChances;
     }
   }
 
