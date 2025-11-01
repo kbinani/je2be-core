@@ -2351,12 +2351,18 @@ public:
     if (dataVersion >= (int)JavaDataVersions::Snapshot25w07a) {
       auto respawnJ = Compound();
       if (spawnDimensionB) {
-        if (auto dimension = DimensionFromBedrockDimension(*spawnDimensionB); dimension && *dimension != mcfile::Dimension::Overworld) {
-          respawnJ->set(u8"dimension", String(JavaStringFromDimension(*dimension)));
+        if (auto dimension = DimensionFromBedrockDimension(*spawnDimensionB); dimension) {
+          if (dataVersion >= (int)JavaDataVersions::PreRelease1_21_9pre2 || *dimension != mcfile::Dimension::Overworld) {
+            respawnJ->set(u8"dimension", String(JavaStringFromDimension(*dimension)));
+          }
         }
       }
       if (spawnBlockPositionX && spawnBlockPositionY && spawnBlockPositionZ) {
         respawnJ->set(u8"pos", IntArrayFromPos3i(Pos3i(*spawnBlockPositionX, *spawnBlockPositionY, *spawnBlockPositionZ)));
+      }
+      if (dataVersion >= (int)JavaDataVersions::PreRelease1_21_9pre2) {
+        respawnJ->set(u8"pitch", Float(0));
+        respawnJ->set(u8"yaw", Float(0));
       }
       if (!respawnJ->empty()) {
         j[u8"respawn"] = respawnJ;
