@@ -722,6 +722,31 @@ public:
     return r;
   }
 
+  static std::optional<Result> Shelf(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
+    Result r;
+    auto tagJ = EmptyShortName(u8"shelf", pos);
+    auto itemsJ = List<Tag::Type::Compound>();
+    if (auto itemsB = tagB.listTag(u8"Items"); itemsB) {
+      for (int i = 0; i < itemsB->size() && i < 3; i++) {
+        auto itemB = itemsB->fValue[i]->asCompound();
+        if (!itemB) {
+          continue;
+        }
+        auto itemJ = Item::From(*itemB, ctx, opt.fOutputDataVersion, {});
+        if (!itemJ || itemJ->empty()) {
+          continue;
+        }
+        itemJ->set(u8"Slot", Byte(i));
+        itemsJ->push_back(itemJ);
+      }
+    }
+    tagJ->set(u8"Items", itemsJ);
+    tagJ->set(u8"align_items_to_bottom", Bool(false));
+    tagJ->set(u8"components", Compound());
+    r.fTileEntity = tagJ;
+    return r;
+  }
+
   static std::optional<Result> ShulkerBox(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
     using namespace std;
     Result r;
@@ -1428,6 +1453,18 @@ public:
     E(waxed_exposed_copper_golem_statue, CopperGolemStatue);
     E(waxed_weathered_copper_golem_statue, CopperGolemStatue);
     E(waxed_oxidized_copper_golem_statue, CopperGolemStatue);
+    E(oak_shelf, Shelf);
+    E(spruce_shelf, Shelf);
+    E(birch_shelf, Shelf);
+    E(jungle_shelf, Shelf);
+    E(acacia_shelf, Shelf);
+    E(dark_oak_shelf, Shelf);
+    E(mangrove_shelf, Shelf);
+    E(cherry_shelf, Shelf);
+    E(pale_oak_shelf, Shelf);
+    E(bamboo_shelf, Shelf);
+    E(crimson_shelf, Shelf);
+    E(warped_shelf, Shelf);
 #undef E
     return t;
   }

@@ -377,6 +377,18 @@ private:
     E(waxed_exposed_copper_golem_statue, CopperGolemStatue);
     E(waxed_weathered_copper_golem_statue, CopperGolemStatue);
     E(waxed_oxidized_copper_golem_statue, CopperGolemStatue);
+    E(oak_shelf, Shelf);
+    E(spruce_shelf, Shelf);
+    E(birch_shelf, Shelf);
+    E(jungle_shelf, Shelf);
+    E(acacia_shelf, Shelf);
+    E(dark_oak_shelf, Shelf);
+    E(mangrove_shelf, Shelf);
+    E(cherry_shelf, Shelf);
+    E(pale_oak_shelf, Shelf);
+    E(bamboo_shelf, Shelf);
+    E(crimson_shelf, Shelf);
+    E(warped_shelf, Shelf);
 #undef E
     return table;
   }
@@ -1333,6 +1345,41 @@ private:
 #pragma endregion
 
 #pragma region Converters: S
+  static CompoundTagPtr Shelf(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    auto tag = Compound();
+    tag->set(u8"id", String(u8"Shelf"));
+    tag->set(u8"isMovable", Bool(true));
+    if (c) {
+      auto itemsB = List<Tag::Type::Compound>();
+      for (int i = 0; i < 3; i++) {
+        itemsB->push_back(Item::Empty());
+      }
+      if (auto itemsJ = c->listTag(u8"Items"); itemsJ) {
+        for (auto const &it : *itemsJ) {
+          auto itemJ = std::dynamic_pointer_cast<CompoundTag>(it);
+          if (!itemJ) {
+            continue;
+          }
+          auto slot = itemJ->byte(u8"Slot");
+          if (!slot) {
+            continue;
+          }
+          if (*slot < 0 || 2 < *slot) {
+            continue;
+          }
+          auto itemB = Item::From(itemJ, ctx, dataVersion);
+          if (!itemB) {
+            continue;
+          }
+          itemsB->fValue[*slot] = itemB;
+        }
+      }
+      tag->set(u8"Items", itemsB);
+    }
+    Attach(c, pos, *tag);
+    return tag;
+  }
+
   static CompoundTagPtr ShulkerBox(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
     auto facing = BlockData::GetFacingDirectionAFromFacing(b);
     auto tag = Compound();
