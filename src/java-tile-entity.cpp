@@ -381,580 +381,109 @@ private:
     return table;
   }
 
-  static CompoundTagPtr CreakingHeart(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    auto ret = New(u8"CreakingHeart");
-    if (c) {
-      if (auto id = c->intArrayTag(u8"creaking"); id) {
-        if (auto uuid = Uuid::FromIntArray(*id); uuid) {
-          auto uuidB = ctx.fUuids->toId(*uuid);
-          ret->set(u8"SpawnedCreakingID", Long(uuidB));
-        }
-      }
-    }
-    Attach(c, pos, *ret);
-    return ret;
-  }
-
-  static CompoundTagPtr Lodestone(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    auto ret = New(u8"Lodestone");
-    i32 tracker = ctx.fLodestones->get(ctx.fWorldData.fDim, pos);
-    ret->set(u8"trackingHandle", Int(tracker));
-    Attach(c, pos, *ret);
-    return ret;
-  }
-
-  static ListTagPtr ConvertUuidList(ListTag const &java, Context const &ctx) {
-    auto bedrock = List<Tag::Type::Compound>();
-    for (auto const &it : java) {
-      if (auto uuidJ = it->asIntArray(); uuidJ) {
-        if (auto uuid = Uuid::FromIntArray(*uuidJ); uuid) {
-          auto uuidB = Compound();
-          uuidB->set(u8"uuid", Long(ctx.fUuids->toId(*uuid)));
-          bedrock->push_back(uuidB);
-        }
-      }
-    }
-    return bedrock;
-  }
-
-  static CompoundTagPtr TrialSpawner(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    auto ret = New(u8"TrialSpawner");
-    if (c) {
-      if (auto spawnDataJ = c->compoundTag(u8"spawn_data"); spawnDataJ) {
-        auto spawnDataB = Compound();
-        if (auto entityJ = spawnDataJ->compoundTag(u8"entity"); entityJ) {
-          if (auto idJ = entityJ->string(u8"id"); idJ) {
-            spawnDataB->set(u8"TypeId", *idJ);
-            spawnDataB->set(u8"Weight", Int(1));
-            ret->set(u8"spawn_data", spawnDataB);
-          }
-        }
-      }
-      for (auto const &key : {u8"registered_players", u8"current_mobs"}) {
-        if (auto uuidListJ = c->listTag(key); uuidListJ) {
-          auto uuidListB = ConvertUuidList(*uuidListJ, ctx);
-          ret->set(key, uuidListB);
-        }
-      }
-      bool hasNormalConfig = false;
-      bool hasOminousConfig = false;
-      if (auto config = c->compoundTag(u8"normal_config"); config) {
-        ret->set(u8"normal_config", TrialSpawnerReplaceConfigLootTables(config));
-        hasNormalConfig = true;
-      }
-      if (auto config = c->compoundTag(u8"ominous_config"); config) {
-        ret->set(u8"ominous_config", TrialSpawnerReplaceConfigLootTables(config));
-        hasOminousConfig = true;
-      }
-      if (hasNormalConfig || hasOminousConfig) {
-        if (!hasNormalConfig) {
-          ret->set(u8"normal_config", Compound());
-        }
-      } else {
-        // trial spawner that was placed by player in creative mode
-        ret->set(u8"spawn_range", Int(4));
-        ret->set(u8"total_mobs", Float(6));
-        ret->set(u8"total_mobs_added_per_player", Float(1));
-        ret->set(u8"ticks_between_spawn", Int(20));
-        ret->set(u8"simultaneous_mobs", Float(2));
-        ret->set(u8"simultaneous_mobs_added_per_player", Float(1));
-      }
-      CopyLongValues(*c, *ret, {{u8"next_mob_spawns_at"}, {u8"cooldown_end_at"}});
-      ret->set(u8"required_player_range", Int(14));
-    }
-    Attach(c, pos, *ret);
-    return ret;
-  }
-
-  static CompoundTagPtr TrialSpawnerReplaceConfigLootTables(CompoundTagPtr java) {
-    auto bedrock = java->copy();
-    if (auto dropJ = java->string(u8"items_to_drop_when_ominous"); dropJ) {
-      if (auto dropB = LootTable::BedrockTableNameFromJava(*dropJ); dropB) {
-        bedrock->set(u8"items_to_drop_when_ominous", *dropB);
-      }
-    }
-    if (auto tablesJ = java->listTag(u8"loot_tables_to_eject"); tablesJ) {
-      auto tablesB = List<Tag::Type::Compound>();
-      for (auto const &it : *tablesJ) {
-        if (auto tableJ = it->asCompound(); tableJ) {
-          auto tableB = tableJ->copy();
-          if (auto dataJ = tableJ->string(u8"data"); dataJ) {
-            if (auto dataB = LootTable::BedrockTableNameFromJava(*dataJ); dataB) {
-              tableB->set(u8"data", *dataB);
-            }
-          }
-          tablesB->push_back(tableB);
-        }
-      }
-      bedrock->set(u8"loot_tables_to_eject", tablesB);
-    }
-    return bedrock;
-  }
-
-  static CompoundTagPtr Vault(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    auto ret = New(u8"Vault");
-    if (c) {
-      auto configB = Compound();
-      configB->set(u8"activation_range", Float(4));
-      configB->set(u8"deactivation_range", Float(4.5));
-      configB->set(u8"loot_table", u8"loot_tables/chests/trial_chambers/reward.json");
-      configB->set(u8"override_loot_table_to_display", u8"");
-      if (auto configJ = c->compoundTag(u8"config"); configJ) {
-        if (auto keyItemJ = configJ->compoundTag(u8"key_item"); keyItemJ) {
-          if (auto keyItemB = Item::From(keyItemJ, ctx, dataVersion); keyItemB) {
-            configB->set(u8"key_item", keyItemB);
-          }
-        }
-      }
-
-      auto dataB = Compound();
-      if (auto serverDataJ = c->compoundTag(u8"server_data"); serverDataJ) {
-        auto rewarededPlayersB = List<Tag::Type::Long>();
-        if (auto rewarededPlayersJ = serverDataJ->listTag(u8"rewarded_players"); rewarededPlayersJ) {
-          for (auto const &it : *rewarededPlayersJ) {
-            auto v = it->asIntArray();
-            if (!v) {
-              continue;
-            }
-            if (auto idJ = Uuid::FromIntArray(*v); idJ) {
-              auto idB = ctx.fUuids->toId(*idJ);
-              rewarededPlayersB->push_back(Long(idB));
-            }
-          }
-        }
-        dataB->set(u8"rewarded_players", rewarededPlayersB);
-
-        auto itemsToEjectB = List<Tag::Type::Compound>();
-        if (auto itemsToEjectJ = serverDataJ->listTag(u8"items_to_eject"); itemsToEjectJ) {
-          for (auto const &it : *itemsToEjectJ) {
-            auto v = std::dynamic_pointer_cast<CompoundTag>(it);
-            if (!v) {
-              continue;
-            }
-            if (auto converted = Item::From(v, ctx, dataVersion); converted) {
-              itemsToEjectB->push_back(converted);
-            }
-          }
-        }
-        dataB->set(u8"items_to_eject", itemsToEjectB);
-
-        CopyLongValues(*serverDataJ, *dataB, {{u8"state_updating_resumes_at"}, {u8"total_ejections_needed"}});
-      }
-      if (auto sharedDataJ = c->compoundTag(u8"shared_data"); sharedDataJ) {
-        if (auto displayItemJ = sharedDataJ->compoundTag(u8"display_item"); displayItemJ) {
-          if (auto displayItemB = Item::From(displayItemJ, ctx, dataVersion); displayItemB) {
-            dataB->set(u8"display_item", displayItemB);
-          }
-        }
-      }
-      ret->set(u8"config", configB);
-      ret->set(u8"data", dataB);
-    }
-    Attach(c, pos, *ret);
-    return ret;
-  }
-
-  static CompoundTagPtr Crafter(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    auto tag = New(u8"Crafter");
-
-    if (auto itemsB = GetItems(c, u8"Items", ctx, dataVersion, {}); itemsB) {
-      tag->set(u8"Items", itemsB);
-    }
-    if (c) {
-      u16 disabledSlotsB = 0;
-      if (auto disabledSlotsJ = c->intArrayTag(u8"disabled_slots"); disabledSlotsJ) {
-        for (auto index : disabledSlotsJ->fValue) {
-          if (0 <= index && index <= 8) {
-            disabledSlotsB |= u16(1) << index;
-          }
-        }
-      }
-
-      tag->set(u8"disabled_slots", Short(*(i16 *)&disabledSlotsB));
-    }
-
-    Attach(c, pos, *tag);
-    return tag;
-  }
-
-  static CompoundTagPtr Jigsaw(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    auto tag = New(u8"JigsawBlock");
-
-    if (c) {
-      CopyStringValues(*c, *tag, {{u8"final_state"}, {u8"joint"}, {u8"target"}, {u8"pool", u8"target_pool"}, {u8"name"}});
-    }
-
-    Attach(c, pos, *tag);
-    return tag;
-  }
-
-  static CompoundTagPtr BrushableBlock(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    auto tag = New(u8"BrushableBlock");
-
-    if (c) {
-      if (LootTable::JavaToBedrock(*c, *tag) == LootTable::State::NoLootTable) {
-        if (auto itemJ = c->compoundTag(u8"item"); itemJ) {
-          if (auto itemB = Item::From(itemJ, ctx, dataVersion); itemB) {
-            tag->set(u8"item", itemB);
-          }
-        }
-      }
-    }
-
-    auto dusted = Wrap(strings::ToI32(b.property(u8"dusted", u8"0")), 0);
-    tag->set(u8"brush_count", Int(dusted));
-
-    tag->set(u8"type", std::u8string(b.fName));
-    tag->set(u8"brush_direction", Byte(6));
-
-    Attach(c, pos, *tag);
-    return tag;
-  }
-
-  static CompoundTagPtr New(std::u8string const &id) {
-    auto tag = Compound();
-    tag->set(u8"isMovable", Bool(true));
-    tag->set(u8"id", id);
-    return tag;
-  }
-
-  static CompoundTagPtr DecoratedPot(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    auto tag = Compound();
-    auto sherdsB = List<Tag::Type::String>();
-    bool empty = true;
-    for (int i = 0; i < 4; i++) {
-      sherdsB->push_back(String(u8""));
-    }
-    if (c) {
-      auto sherdsJ = c->listTag(u8"sherds");
-      if (!sherdsJ) {
-        // < 1.20
-        sherdsJ = c->listTag(u8"shards");
-      }
-      if (sherdsJ) {
-        for (int i = 0; i < 4 && i < sherdsJ->size(); i++) {
-          auto const &sherd = sherdsJ->at(i);
-          if (auto sherdName = sherd->asString(); sherdName && !sherdName->fValue.empty()) {
-            sherdsB->fValue[i] = String(sherdName->fValue);
-            empty = false;
-          }
-        }
-      }
-
-      if (LootTable::JavaToBedrock(*c, *tag) == LootTable::State::NoLootTable) {
-        if (auto itemJ = c->compoundTag(u8"item"); itemJ) {
-          if (auto itemB = Item::From(itemJ, ctx, dataVersion); itemB) {
-            tag->set(u8"item", itemB);
-          } else {
-            tag->set(u8"item", Item::Empty());
-          }
-        }
-      }
-    }
-    tag->insert({{u8"isMovable", Bool(true)},
-                 {u8"id", String(u8"DecoratedPot")},
-                 {u8"animation", Byte(0)}});
-    if (!empty) {
-      tag->set(u8"sherds", sherdsB);
-    }
-    Attach(c, pos, *tag);
-    return tag;
-  }
-
-  static CompoundTagPtr ChiseledBookshelf(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    auto tag = Compound();
-    auto items = GetItemsRemovingSlot(c, u8"Items", ctx, 6, dataVersion);
-    if (items) {
-      bool empty = true;
-      for (auto const &item : *items) {
-        if (auto comp = item->asCompound(); comp) {
-          if (auto count = Item::Count(*comp); count && *count > 0) {
-            empty = false;
-            break;
-          }
-        }
-      }
-      if (empty) {
-        items.reset();
-      }
-    }
-    tag->insert({
-        {u8"isMovable", Bool(true)},
-        {u8"id", String(u8"ChiseledBookshelf")},
-    });
-    if (items) {
-      tag->set(u8"Items", items);
-    }
-
-    if (c) {
-      CopyIntValues(*c, *tag, {{u8"last_interacted_slot", u8"LastInteractedSlot"}});
-    }
-
-    Attach(c, pos, *tag);
-    return tag;
-  }
-
-  static CompoundTagPtr StructureBlock(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    if (!c) {
-      return nullptr;
-    }
-    auto t = Empty(u8"StructureBlock", *c, pos);
-
-    t->set(u8"animationMode", Bool(false));
-    t->set(u8"animationSeconds", Float(0));
-    t->set(u8"dataField", u8"");
-    t->set(u8"includePlayers", Bool(false));
-    t->set(u8"redstoneSaveMode", Int(0));
-    t->set(u8"removeBlocks", Bool(false));
-
-    CopyBoolValues(*c, *t, {{u8"ignoreEntities"}, {u8"powered", u8"isPowered"}, {u8"showboundingbox", u8"showBoundingBox"}});
-    CopyFloatValues(*c, *t, {{u8"integrity"}});
-    CopyStringValues(*c, *t, {{u8"name", u8"structureName"}, {u8"metadata", u8"dataField"}});
-    CopyIntValues(*c, *t, {
-                              {u8"posX", u8"xStructureOffset"},
-                              {u8"posY", u8"yStructureOffset"},
-                              {u8"posZ", u8"zStructureOffset"},
-                              {u8"sizeX", u8"xStructureSize"},
-                              {u8"sizeY", u8"yStructureSize"},
-                              {u8"sizeZ", u8"zStructureSize"},
-                          });
-    CopyLongValues(*c, *t, {{u8"seed"}});
-
-    // "NONE", "LEFT_RIGHT" (displayed as "<- ->"), "FRONT_BACK" (displayed as "^v")
-    auto mirror = c->string(u8"mirror", u8"NONE");
-    i8 mirrorMode = 0; // NONE
-    if (mirror == u8"LEFT_RIGHT") {
-      mirrorMode = 1;
-    } else if (mirror == u8"FRONT_BACK") {
-      mirrorMode = 2;
-    }
-    t->set(u8"mirror", Byte(mirrorMode));
-
-    // "LOAD", "SAVE", "CORNER"
-    auto mode = c->string(u8"mode", u8"LOAD");
-    int data;
-    if (mode == u8"SAVE") {
-      data = 1;
-    } else if (mode == u8"CORNER") {
-      data = 3;
-    } else { // "LOAD"
-      data = 2;
-    }
-    t->set(u8"data", Int(data));
-
-    // "NONE" (displayed as "0"), "CLOCKWISE_90" (displayed as "90"), "CLOCKWISE_180" (displayed as "180"), "COUNTERCLOCKWISE_90" (displayed as "270")
-    auto rotation = c->string(u8"rotation", u8"NONE");
-    i8 rot = 0;
-    if (rotation == u8"NONE") {
-      rot = 0;
-    } else if (rotation == u8"CLOCKWISE_90") {
-      rot = 1;
-    } else if (rotation == u8"CLOCKWISE_180") {
-      rot = 2;
-    } else if (rotation == u8"COUNTERCLOCKWISE_90") {
-      rot = 3;
-    }
-    t->set(u8"rotation", Byte(rot));
-
-    return t;
-  }
-
-  static Converter NamedEmpty(std::u8string id) {
-    return [id](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) -> CompoundTagPtr {
-      if (!c) {
-        return nullptr;
-      }
-      return Empty(id, *c, pos);
-    };
-  }
-
-  static Converter NamedEmptyFromNull(std::u8string id) {
-    return [id](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) -> CompoundTagPtr {
-      return Empty(id, {}, pos);
-    };
-  }
-
-  static CompoundTagPtr Hopper(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    if (!c) {
-      return nullptr;
-    }
-    auto t = AnyStorage(u8"Hopper", std::nullopt)(pos, b, c, ctx, dataVersion);
-    CopyIntValues(*c, *t, {{u8"TransferCooldown", u8"TransferCooldown", 0}});
-    return t;
-  }
-
-  static CompoundTagPtr Comparator(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    if (!c) {
-      return nullptr;
-    }
-    auto t = Empty(u8"Comparator", *c, pos);
-    CopyIntValues(*c, *t, {{u8"OutputSignal", u8"OutputSignal", 0}});
-    t->set(u8"isMovable", Bool(true));
-    return t;
-  }
-
-  static CompoundTagPtr Campfire(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+#pragma region Converters: B
+  static CompoundTagPtr Banner(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
     using namespace std;
-    if (!c) {
-      return nullptr;
-    }
-    auto t = Empty(u8"Campfire", *c, pos);
-    auto timesTag = c->intArrayTag(u8"CookingTimes");
-    if (timesTag) {
-      auto const &times = timesTag->value();
-      for (int i = 0; i < 4 && i < times.size(); i++) {
-        int time = times[i];
-        t->set(u8"ItemTime" + mcfile::String::ToString(i + 1), Int(time));
-      }
-    }
-    auto items = GetItems(c, u8"Items", ctx, dataVersion, {.fConvertSlotTag = false});
-    if (items) {
-      for (int i = 0; i < 4 && i < items->size(); i++) {
-        if (auto item = items->at(i); item) {
-          t->set(u8"Item" + mcfile::String::ToString(i + 1), item);
+    auto tag = Compound();
+
+    i32 type = 0;
+    if (auto customNameString = Migrate<StringTag>(c, u8"item_name", Depth::Root, u8"CustomName"); customNameString) {
+      if (auto customName = props::ParseAsJson(customNameString->fValue); customName) {
+        auto translate = GetAsString(*customName, "translate");
+        if (translate == u8"block.minecraft.ominous_banner") {
+          type = 1; // Illager Banner
         }
       }
-    }
-    t->set(u8"isMovable", Bool(true));
-    return t;
-  }
-
-  static CompoundTagPtr Conduit(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    if (!c) {
-      return nullptr;
-    }
-    auto t = Empty(u8"Conduit", *c, pos);
-    t->set(u8"Active", Bool(false));
-    t->set(u8"Target", Long(-1));
-    t->set(u8"isMovable", Bool(true));
-    return t;
-  }
-
-  static CompoundTagPtr Bell(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    if (!c) {
-      return nullptr;
-    }
-    auto t = Empty(u8"Bell", *c, pos);
-    t->set(u8"Direction", Int(255));
-    t->set(u8"Ringing", Bool(false));
-    t->set(u8"Ticks", Int(0));
-    t->set(u8"isMovable", Bool(true));
-    return t;
-  }
-
-  static CompoundTagPtr EnchantingTable(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    if (!c) {
-      return nullptr;
-    }
-    auto t = Empty(u8"EnchantTable", *c, pos);
-
-    // "rott"
-    // [-pi, pi] float, an angle of enchant table and player's position who placed the table.
-    // Java doesn't store such data in tile entity, so generate rott based on its xyz position.
-    mcfile::XXHash<u32> xx(0);
-    xx.update(&pos.fX, sizeof(pos.fX));
-    xx.update(&pos.fY, sizeof(pos.fY));
-    xx.update(&pos.fZ, sizeof(pos.fZ));
-    u32 seed = xx.digest();
-    std::mt19937 gen(seed);
-    std::uniform_real_distribution<float> distribution(-std::numbers::pi, std::numbers::pi);
-    float rott = distribution(gen);
-    t->set(u8"rott", Float(rott));
-
-    return t;
-  }
-
-  static CompoundTagPtr EnderChest(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    auto ret = AnyStorage(u8"EnderChest", false)(pos, b, c, ctx, dataVersion);
-    ret->set(u8"Items", List<Tag::Type::Compound>());
-    return ret;
-  }
-
-  static CompoundTagPtr EndGateway(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    using namespace std;
-    if (!c) {
-      return nullptr;
-    }
-    auto tag = Compound();
-    tag->insert({
-        {u8"id", String(u8"EndGateway")},
-        {u8"isMovable", Bool(true)},
-    });
-
-    auto age = c->int64(u8"Age", 0);
-    tag->set(u8"Age", Int(age));
-
-    auto exitPortal = c->compoundTag(u8"ExitPortal");
-    if (exitPortal) {
-      auto x = exitPortal->int32(u8"X");
-      auto y = exitPortal->int32(u8"Y");
-      auto z = exitPortal->int32(u8"Z");
-      if (x && y && z) {
-        auto ep = List<Tag::Type::Int>();
-        ep->push_back(Int(*x));
-        ep->push_back(Int(*y));
-        ep->push_back(Int(*z));
-        tag->set(u8"ExitPortal", ep);
+    } else if (auto itemName = GetComponent<CompoundTag>(c, u8"item_name"); itemName) {
+      if (auto translate = itemName->string(u8"translate"); translate == u8"block.minecraft.ominous_banner") {
+        type = 1; // Illager Banner
       }
+    }
+
+    auto patternsJ = FallbackPtr<ListTag>(c, {u8"patterns", u8"Patterns"});
+    auto patternsB = List<Tag::Type::Compound>();
+    if (patternsJ && type != 1) {
+      for (auto const &pattern : *patternsJ) {
+        auto p = pattern->asCompound();
+        if (!p) {
+          continue;
+        }
+        ColorCodeJava color;
+        if (auto patternColor = p->string(u8"color"); patternColor) {
+          color = ColorCodeJavaFromJavaName(*patternColor);
+        } else if (auto legacyPatternColor = p->int32(u8"Color"); legacyPatternColor) {
+          color = static_cast<ColorCodeJava>(*legacyPatternColor);
+        } else {
+          continue;
+        }
+        auto patternJ = FallbackPtr<StringTag>(*p, {u8"pattern", u8"Pattern"});
+        if (!patternJ) {
+          continue;
+        }
+        auto patternB = Banner::BedrockOrLegacyJavaPatternFromJava(patternJ->fValue);
+        auto ptag = Compound();
+        ptag->insert({
+            {u8"Color", Int(static_cast<i32>(BannerColorCodeFromJava(color)))},
+            {u8"Pattern", String(Wrap(patternB, patternJ->fValue))},
+        });
+        patternsB->push_back(ptag);
+      }
+    }
+
+    i32 base = BannerColor(b.fName);
+
+    tag->insert({
+        {u8"id", String(u8"Banner")},
+        {u8"isMovable", Bool(true)},
+        {u8"Type", Int(type)},
+        {u8"Base", Int(base)},
+    });
+    if (!patternsB->empty()) {
+      tag->set(u8"Patterns", patternsB);
     }
     Attach(c, pos, *tag);
     return tag;
   }
 
-  static CompoundTagPtr MovingPiston(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    if (!c) {
-      return nullptr;
-    }
-    auto id = c->string(u8"id");
-    // id = "j2b:MovingBlock" block entity was created in Converter::PreprocessChunk
-    if (id != u8"j2b:MovingBlock") {
-      return nullptr;
-    }
-    std::u8string newId = id->substr(4);
-    c->set(u8"id", newId);
-    return c;
-  }
+  static CompoundTagPtr Beacon(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    int primary = 0;
+    int secondary = 0;
+    if (c) {
+      if (auto primaryJ = c->string(u8"primary_effect"); primaryJ) {
+        primary = Beacon::BedrockEffectFromJava(*primaryJ);
+      } else if (auto legacyPrimaryJ = c->int32(u8"Primary"); legacyPrimaryJ) {
+        // <= 1.20.1
+        primary = *legacyPrimaryJ;
+      }
 
-  static CompoundTagPtr CommandBlock(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    if (!c) {
-      return nullptr;
+      if (auto secondaryJ = c->string(u8"secondary_effect"); secondaryJ) {
+        secondary = Beacon::BedrockEffectFromJava(*secondaryJ);
+      } else if (auto legacySecondaryJ = c->int32(u8"Secondary"); legacySecondaryJ) {
+        // <= 1.20.1
+        secondary = *legacySecondaryJ;
+      }
     }
 
     auto tag = Compound();
-    auto powered = c->boolean(u8"powered", false);
-    auto automatic = c->boolean(u8"auto", false);
-    auto trackOutput = c->boolean(u8"TrackOutput", true);
-    auto successCount = c->int32(u8"SuccessCount", 0);
-    auto commandJ = props::GetTextComponent(c->string(u8"Command", u8""));
-    auto commandB = command::Command::TranspileJavaToBedrock(commandJ);
-    auto conditionMet = c->boolean(u8"conditionMet", false);
-
-    auto lastExecution = c->int64(u8"LastExecution");
-    if (lastExecution) {
-      tag->set(u8"LastExecution", Long(*lastExecution));
-    }
-
     tag->insert({
-        {u8"id", String(u8"CommandBlock")},
+        {u8"id", String(u8"Beacon")},
         {u8"isMovable", Bool(true)},
-        {u8"powered", Bool(powered)},
-        {u8"auto", Bool(automatic)},
-        {u8"TickDelay", Int(0)},
-        {u8"TrackOutput", Bool(trackOutput)},
-        {u8"Version", Int(34)},
-        {u8"SuccessCount", Int(successCount)},
-        {u8"Command", String(commandB)},
-        {u8"ExecuteOnFirstTick", Bool(false)},
-        {u8"conditionMet", Bool(conditionMet)},
+        {u8"primary", Int(primary)},
+        {u8"secondary", Int(secondary)},
     });
     Attach(c, pos, *tag);
-    auto customNameJ = c->string(u8"CustomName");
-    if (customNameJ) {
-      auto text = props::GetTextComponent(*customNameJ);
-      if (!text.empty()) {
-        tag->set(u8"CustomName", text);
-      }
-    }
+    return tag;
+  }
+
+  static CompoundTagPtr Bed(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    auto tag = Compound();
+    auto color = BedColor(b.fName);
+    tag->insert({
+        {u8"id", String(u8"Bed")},
+        {u8"color", Byte(color)},
+        {u8"isMovable", Bool(true)},
+    });
+    Attach(c, pos, *tag);
     return tag;
   }
 
@@ -1025,215 +554,16 @@ private:
     return tag;
   }
 
-  struct PistonArm {
-    explicit PistonArm(bool sticky) : sticky(sticky) {}
-
-    CompoundTagPtr operator()(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) const {
-      if (!c) {
-        return nullptr;
-      }
-      auto id = c->string(u8"id");
-      if (!id) {
-        return nullptr;
-      }
-      if (*id == u8"j2b:PistonArm") {
-        c->set(u8"id", u8"PistonArm");
-        return c;
-      } else {
-        auto ret = Compound();
-        ret->set(u8"id", u8"PistonArm");
-        ret->set(u8"isMovable", Bool(false));
-        ret->set(u8"LastProgress", Float(1));
-        ret->set(u8"NewState", Byte(2));
-        ret->set(u8"Progress", Float(1));
-        ret->set(u8"State", Byte(2));
-        ret->set(u8"Sticky", Bool(sticky));
-        auto attachedBlocks = List<Tag::Type::Int>();
-        auto breakBlocks = List<Tag::Type::Int>();
-        ret->set(u8"AttachedBlocks", attachedBlocks);
-        ret->set(u8"BreakBlocks", breakBlocks);
-        Attach(c, pos, *ret);
-        return ret;
-      }
-    }
-
-    bool const sticky;
-  };
-
-  static CompoundTagPtr Lectern(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    using namespace std;
-
-    auto tag = Compound();
-    tag->insert({
-        {u8"id", String(u8"Lectern")},
-        {u8"isMovable", Bool(true)},
-    });
-    shared_ptr<CompoundTag> book;
-    if (c) {
-      book = c->compoundTag(u8"Book");
-    }
-    if (book) {
-      auto item = Item::From(book, ctx, dataVersion);
-      if (item) {
-        tag->set(u8"book", item);
-        auto pages = item->query(u8"tag/pages")->asList();
-        if (auto page = c->int32(u8"Page"); page && page >= 0) {
-          tag->set(u8"page", Int(*page));
-        }
-        i32 totalPages;
-        if (pages) {
-          totalPages = pages->size();
-        } else {
-          totalPages = 0;
-        }
-        tag->set(u8"hasBook", Bool(true));
-        tag->set(u8"totalPages", Int(totalPages));
-      }
-    }
-    Attach(c, pos, *tag);
-    return tag;
-  }
-
-  static CompoundTagPtr Beacon(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    int primary = 0;
-    int secondary = 0;
-    if (c) {
-      if (auto primaryJ = c->string(u8"primary_effect"); primaryJ) {
-        primary = Beacon::BedrockEffectFromJava(*primaryJ);
-      } else if (auto legacyPrimaryJ = c->int32(u8"Primary"); legacyPrimaryJ) {
-        // <= 1.20.1
-        primary = *legacyPrimaryJ;
-      }
-
-      if (auto secondaryJ = c->string(u8"secondary_effect"); secondaryJ) {
-        secondary = Beacon::BedrockEffectFromJava(*secondaryJ);
-      } else if (auto legacySecondaryJ = c->int32(u8"Secondary"); legacySecondaryJ) {
-        // <= 1.20.1
-        secondary = *legacySecondaryJ;
-      }
-    }
-
-    auto tag = Compound();
-    tag->insert({
-        {u8"id", String(u8"Beacon")},
-        {u8"isMovable", Bool(true)},
-        {u8"primary", Int(primary)},
-        {u8"secondary", Int(secondary)},
-    });
-    Attach(c, pos, *tag);
-    return tag;
-  }
-
-  static CompoundTagPtr EndPortal(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    auto tag = Compound();
-    tag->insert({
-        {u8"id", String(u8"EndPortal")},
-        {u8"isMovable", Bool(true)},
-    });
-    Attach(c, pos, *tag);
-    return tag;
-  }
-
-  static CompoundTagPtr Cauldron(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    using namespace std;
-
-    auto tag = Compound();
-    tag->insert({{u8"id", String(u8"Cauldron")},
-                 {u8"isMovable", Bool(true)},
-                 {u8"PotionId", Short(-1)},
-                 {u8"PotionType", Short(-1)},
-                 {u8"Items", List<Tag::Type::Compound>()}});
-
-    Attach(c, pos, *tag);
-    return tag;
-  }
-
-  static CompoundTagPtr Jukebox(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    using namespace std;
-
-    auto tag = Compound();
-    tag->insert({
-        {u8"id", String(u8"Jukebox")},
-        {u8"isMovable", Bool(true)},
-    });
-
-    shared_ptr<CompoundTag> recordItem;
-    if (c) {
-      recordItem = c->compoundTag(u8"RecordItem");
-    }
-    if (recordItem) {
-      auto beRecordItem = Item::From(recordItem, ctx, dataVersion);
-      if (beRecordItem) {
-        tag->set(u8"RecordItem", beRecordItem);
-      }
-    }
-
-    Attach(c, pos, *tag);
-    return tag;
-  }
-
-  static CompoundTagPtr Note(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    using namespace std;
-
-    auto note = strings::ToI32(b.property(u8"note", u8"0"));
-    if (!note) {
-      return nullptr;
-    }
-
-    auto tag = Compound();
-    tag->insert({
-        {u8"id", String(u8"Music")},
-        {u8"isMovable", Bool(true)},
-        {u8"note", Byte(*note)},
-    });
-    Attach(c, pos, *tag);
-    return tag;
-  }
-
-  static CompoundTagPtr Spawner(CompoundTagPtr const &c) {
+  static CompoundTagPtr Bell(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
     if (!c) {
       return nullptr;
     }
-    auto x = c->int32(u8"x");
-    auto y = c->int32(u8"y");
-    auto z = c->int32(u8"z");
-    if (!x || !y || !z) {
-      return nullptr;
-    }
-
-    auto tag = Compound();
-
-    std::u8string mob;
-    auto spawnData = c->compoundTag(u8"SpawnData");
-    if (spawnData) {
-      auto entity = spawnData->compoundTag(u8"entity");
-      if (entity) {
-        auto id = entity->string(u8"id");
-        if (id) {
-          mob = *id;
-        }
-      } else {
-        auto id = spawnData->string(u8"id");
-        if (id) {
-          mob = *id;
-        }
-      }
-    }
-
-    CopyShortValues(*c, *tag, {{u8"MaxNearbyEntities", u8"MaxNearbyEntities", 6}, {u8"MaxSpawnDelay", u8"MaxSpawnDelay", 800}, {u8"MinSpawnDelay", u8"MinSpawnDelay", 200}, {u8"RequiredPlayerRange", u8"RequiredPlayerRange", 16}, {u8"Delay", u8"Delay", 0}, {u8"SpawnCount", u8"SpawnCount", 4}, {u8"SpawnRange", u8"SpawnRange", 4}});
-
-    tag->insert({
-        {u8"x", Int(*x)},
-        {u8"y", Int(*y)},
-        {u8"z", Int(*z)},
-        {u8"id", String(u8"MobSpawner")},
-        {u8"isMovable", Bool(true)},
-        {u8"DisplayEntityHeight", Float(1.8)},
-        {u8"DisplayEntityScale", Float(1)},
-        {u8"DisplayEntityWidth", Float(0.8)},
-    });
-    tag->set(u8"EntityIdentifier", mob);
-    return tag;
+    auto t = Empty(u8"Bell", *c, pos);
+    t->set(u8"Direction", Int(255));
+    t->set(u8"Ringing", Bool(false));
+    t->set(u8"Ticks", Int(0));
+    t->set(u8"isMovable", Bool(true));
+    return t;
   }
 
   static CompoundTagPtr BrewingStand(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
@@ -1298,132 +628,384 @@ private:
     return tag;
   }
 
-  static Converter AnyStorage(std::u8string const &name, std::optional<bool> findable) {
-    return [=](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-      using namespace std;
+  static CompoundTagPtr BrushableBlock(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    auto tag = New(u8"BrushableBlock");
 
-      auto tag = Compound();
+    if (c) {
+      if (LootTable::JavaToBedrock(*c, *tag) == LootTable::State::NoLootTable) {
+        if (auto itemJ = c->compoundTag(u8"item"); itemJ) {
+          if (auto itemB = Item::From(itemJ, ctx, dataVersion); itemB) {
+            tag->set(u8"item", itemB);
+          }
+        }
+      }
+    }
 
-      if (c) {
-        if (LootTable::JavaToBedrock(*c, *tag) == LootTable::State::NoLootTable) {
-          if (auto items = GetItems(c, u8"Items", ctx, dataVersion, {.fConvertSlotTag = true}); items) {
-            tag->set(u8"Items", items);
+    auto dusted = Wrap(strings::ToI32(b.property(u8"dusted", u8"0")), 0);
+    tag->set(u8"brush_count", Int(dusted));
+
+    tag->set(u8"type", std::u8string(b.fName));
+    tag->set(u8"brush_direction", Byte(6));
+
+    Attach(c, pos, *tag);
+    return tag;
+  }
+#pragma endregion
+
+#pragma region Converters: C
+  static CompoundTagPtr Campfire(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    using namespace std;
+    if (!c) {
+      return nullptr;
+    }
+    auto t = Empty(u8"Campfire", *c, pos);
+    auto timesTag = c->intArrayTag(u8"CookingTimes");
+    if (timesTag) {
+      auto const &times = timesTag->value();
+      for (int i = 0; i < 4 && i < times.size(); i++) {
+        int time = times[i];
+        t->set(u8"ItemTime" + mcfile::String::ToString(i + 1), Int(time));
+      }
+    }
+    auto items = GetItems(c, u8"Items", ctx, dataVersion, {.fConvertSlotTag = false});
+    if (items) {
+      for (int i = 0; i < 4 && i < items->size(); i++) {
+        if (auto item = items->at(i); item) {
+          t->set(u8"Item" + mcfile::String::ToString(i + 1), item);
+        }
+      }
+    }
+    t->set(u8"isMovable", Bool(true));
+    return t;
+  }
+
+  static CompoundTagPtr Cauldron(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    using namespace std;
+
+    auto tag = Compound();
+    tag->insert({{u8"id", String(u8"Cauldron")},
+                 {u8"isMovable", Bool(true)},
+                 {u8"PotionId", Short(-1)},
+                 {u8"PotionType", Short(-1)},
+                 {u8"Items", List<Tag::Type::Compound>()}});
+
+    Attach(c, pos, *tag);
+    return tag;
+  }
+
+  static CompoundTagPtr Chest(Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &comp, Context &ctx, DataVersion const &dataVersion) {
+    using namespace std;
+
+    auto type = b.property(u8"type", u8"single");
+    auto facing = b.property(u8"facing", u8"north");
+    optional<Pos2i> pairPos;
+    Facing4 f4 = Facing4FromJavaName(facing);
+    Pos2i direction = Pos2iFromFacing4(f4);
+    if (type == u8"left") {
+      pairPos = Pos2i(pos.fX, pos.fZ) + Right90(direction);
+    } else if (type == u8"right") {
+      pairPos = Pos2i(pos.fX, pos.fZ) + Left90(direction);
+    }
+
+    auto tag = Compound();
+    if (comp) {
+      tag->set(u8"Items", List<Tag::Type::Compound>());
+      if (auto st = LootTable::JavaToBedrock(*comp, *tag); st == LootTable::State::NoLootTable) {
+        auto items = GetItems(comp, u8"Items", ctx, dataVersion, {.fConvertSlotTag = true});
+        if (items) {
+          tag->set(u8"Items", items);
+        }
+      }
+    }
+
+    tag->insert({
+        {u8"Findable", Bool(false)},
+        {u8"id", String(u8"Chest")},
+        {u8"isMovable", Bool(true)},
+    });
+    if (pairPos) {
+      tag->set(u8"pairlead", Bool(type == u8"right"));
+      tag->set(u8"pairx", Int(pairPos->fX));
+      tag->set(u8"pairz", Int(pairPos->fZ));
+    }
+    Attach(comp, pos, *tag);
+    return tag;
+  }
+
+  static CompoundTagPtr ChiseledBookshelf(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    auto tag = Compound();
+    auto items = GetItemsRemovingSlot(c, u8"Items", ctx, 6, dataVersion);
+    if (items) {
+      bool empty = true;
+      for (auto const &item : *items) {
+        if (auto comp = item->asCompound(); comp) {
+          if (auto count = Item::Count(*comp); count && *count > 0) {
+            empty = false;
+            break;
+          }
+        }
+      }
+      if (empty) {
+        items.reset();
+      }
+    }
+    tag->insert({
+        {u8"isMovable", Bool(true)},
+        {u8"id", String(u8"ChiseledBookshelf")},
+    });
+    if (items) {
+      tag->set(u8"Items", items);
+    }
+
+    if (c) {
+      CopyIntValues(*c, *tag, {{u8"last_interacted_slot", u8"LastInteractedSlot"}});
+    }
+
+    Attach(c, pos, *tag);
+    return tag;
+  }
+
+  static CompoundTagPtr CommandBlock(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    if (!c) {
+      return nullptr;
+    }
+
+    auto tag = Compound();
+    auto powered = c->boolean(u8"powered", false);
+    auto automatic = c->boolean(u8"auto", false);
+    auto trackOutput = c->boolean(u8"TrackOutput", true);
+    auto successCount = c->int32(u8"SuccessCount", 0);
+    auto commandJ = props::GetTextComponent(c->string(u8"Command", u8""));
+    auto commandB = command::Command::TranspileJavaToBedrock(commandJ);
+    auto conditionMet = c->boolean(u8"conditionMet", false);
+
+    auto lastExecution = c->int64(u8"LastExecution");
+    if (lastExecution) {
+      tag->set(u8"LastExecution", Long(*lastExecution));
+    }
+
+    tag->insert({
+        {u8"id", String(u8"CommandBlock")},
+        {u8"isMovable", Bool(true)},
+        {u8"powered", Bool(powered)},
+        {u8"auto", Bool(automatic)},
+        {u8"TickDelay", Int(0)},
+        {u8"TrackOutput", Bool(trackOutput)},
+        {u8"Version", Int(34)},
+        {u8"SuccessCount", Int(successCount)},
+        {u8"Command", String(commandB)},
+        {u8"ExecuteOnFirstTick", Bool(false)},
+        {u8"conditionMet", Bool(conditionMet)},
+    });
+    Attach(c, pos, *tag);
+    auto customNameJ = c->string(u8"CustomName");
+    if (customNameJ) {
+      auto text = props::GetTextComponent(*customNameJ);
+      if (!text.empty()) {
+        tag->set(u8"CustomName", text);
+      }
+    }
+    return tag;
+  }
+
+  static CompoundTagPtr Comparator(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    if (!c) {
+      return nullptr;
+    }
+    auto t = Empty(u8"Comparator", *c, pos);
+    CopyIntValues(*c, *t, {{u8"OutputSignal", u8"OutputSignal", 0}});
+    t->set(u8"isMovable", Bool(true));
+    return t;
+  }
+
+  static CompoundTagPtr Conduit(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    if (!c) {
+      return nullptr;
+    }
+    auto t = Empty(u8"Conduit", *c, pos);
+    t->set(u8"Active", Bool(false));
+    t->set(u8"Target", Long(-1));
+    t->set(u8"isMovable", Bool(true));
+    return t;
+  }
+
+  static CompoundTagPtr CopperGolemStatue(Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &j, Context &ctx, DataVersion const &dataVersion) {
+    auto tagB = Compound();
+    auto actor = Compound();
+    actor->set(u8"ActorIdentifier", String(u8"minecraft:copper_golem<>"));
+    actor->set(u8"SaveData", Compound());
+    tagB->set(u8"Actor", actor);
+    tagB->set(u8"id", String(u8"CopperGolemStatue"));
+    tagB->set(u8"isMovable", Bool(true));
+    auto poseJ = b.property(u8"copper_golem_pose", u8"standing");
+    int poseB = 0;
+    if (poseJ == u8"sitting") {
+      poseB = 1;
+    } else if (poseJ == u8"running") {
+      poseB = 2;
+    } else if (poseJ == u8"star") {
+      poseB = 3;
+    }
+    tagB->set(u8"Pose", Int(poseB));
+    Attach(j, pos, *tagB);
+    return tagB;
+  }
+
+  static CompoundTagPtr Crafter(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    auto tag = New(u8"Crafter");
+
+    if (auto itemsB = GetItems(c, u8"Items", ctx, dataVersion, {}); itemsB) {
+      tag->set(u8"Items", itemsB);
+    }
+    if (c) {
+      u16 disabledSlotsB = 0;
+      if (auto disabledSlotsJ = c->intArrayTag(u8"disabled_slots"); disabledSlotsJ) {
+        for (auto index : disabledSlotsJ->fValue) {
+          if (0 <= index && index <= 8) {
+            disabledSlotsB |= u16(1) << index;
           }
         }
       }
 
-      tag->insert({
-          {u8"id", String(name)},
-          {u8"isMovable", Bool(true)},
-      });
-      if (findable) {
-        tag->set(u8"Findable", Bool(*findable));
-      }
-      Attach(c, pos, *tag);
-      return tag;
-    };
-  }
+      tag->set(u8"disabled_slots", Short(*(i16 *)&disabledSlotsB));
+    }
 
-  static CompoundTagPtr Skull(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    using namespace std;
-    using namespace mcfile::blocks;
-    auto tag = Compound();
-    auto rot = Wrap(strings::ToI32(b.property(u8"rotation", u8"0")), 0);
-    float rotation = Rotation::ClampDegreesBetweenMinus180And180(rot / 16.0f * 360.0f);
-    tag->insert({
-        {u8"id", String(u8"Skull")},
-        {u8"isMovable", Bool(true)},
-        {u8"DoingAnimation", Bool(false)},
-        {u8"MouthTickCount", Int(0)},
-        {u8"SkullType", Byte(-1)},
-        {u8"Rotation", Float(rotation)},
-    });
     Attach(c, pos, *tag);
     return tag;
   }
 
-  static CompoundTagPtr PottedBamboo(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    using namespace std;
-
-    auto tag = Compound();
-    auto plantBlock = Compound();
-    auto states = Compound();
-    states->insert({
-        {u8"age_bit", Byte(0)},
-        {u8"bamboo_leaf_size", String(u8"no_leaves")},
-        {u8"bamboo_stalk_thickness", String(u8"thin")},
-    });
-    plantBlock->insert({
-        {u8"states", states},
-        {u8"name", String(u8"minecraft:bamboo")},
-        {u8"version", Int(kBlockDataVersion)},
-    });
-    tag->insert({
-        {u8"id", String(u8"FlowerPot")},
-        {u8"isMovable", Bool(true)},
-        {u8"PlantBlock", plantBlock},
-    });
-    Attach(c, pos, *tag);
-    return tag;
-  }
-
-  static Converter PottedPlant(std::u8string const &name, std::map<std::u8string, std::variant<std::u8string, bool, i32, i8>> const &properties) {
-    return [=](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) -> CompoundTagPtr {
-      using namespace std;
-
-      auto tag = Compound();
-      auto plantBlock = Compound();
-      auto states = Compound();
-      for (auto const &p : properties) {
-        if (holds_alternative<u8string>(p.second)) {
-          states->set(p.first, get<u8string>(p.second));
-        } else if (holds_alternative<bool>(p.second)) {
-          states->set(p.first, Bool(get<bool>(p.second)));
-        } else if (holds_alternative<i32>(p.second)) {
-          states->set(p.first, Int(get<i32>(p.second)));
-        } else if (holds_alternative<i8>(p.second)) {
-          states->set(p.first, Byte(get<i8>(p.second)));
-        } else {
-          assert(false);
+  static CompoundTagPtr CreakingHeart(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    auto ret = New(u8"CreakingHeart");
+    if (c) {
+      if (auto id = c->intArrayTag(u8"creaking"); id) {
+        if (auto uuid = Uuid::FromIntArray(*id); uuid) {
+          auto uuidB = ctx.fUuids->toId(*uuid);
+          ret->set(u8"SpawnedCreakingID", Long(uuidB));
         }
       }
-      plantBlock->insert({
-          {u8"states", states},
-          {u8"name", String(u8"minecraft:" + name)},
-          {u8"version", Int(kBlockDataVersion)},
-      });
-      tag->insert({
-          {u8"id", String(u8"FlowerPot")},
-          {u8"isMovable", Bool(true)},
-          {u8"PlantBlock", plantBlock},
-      });
-      Attach(c, pos, *tag);
-      return tag;
-    };
+    }
+    Attach(c, pos, *ret);
+    return ret;
+  }
+#pragma endregion
+
+#pragma region Converters: D
+  static CompoundTagPtr DecoratedPot(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    auto tag = Compound();
+    auto sherdsB = List<Tag::Type::String>();
+    bool empty = true;
+    for (int i = 0; i < 4; i++) {
+      sherdsB->push_back(String(u8""));
+    }
+    if (c) {
+      auto sherdsJ = c->listTag(u8"sherds");
+      if (!sherdsJ) {
+        // < 1.20
+        sherdsJ = c->listTag(u8"shards");
+      }
+      if (sherdsJ) {
+        for (int i = 0; i < 4 && i < sherdsJ->size(); i++) {
+          auto const &sherd = sherdsJ->at(i);
+          if (auto sherdName = sherd->asString(); sherdName && !sherdName->fValue.empty()) {
+            sherdsB->fValue[i] = String(sherdName->fValue);
+            empty = false;
+          }
+        }
+      }
+
+      if (LootTable::JavaToBedrock(*c, *tag) == LootTable::State::NoLootTable) {
+        if (auto itemJ = c->compoundTag(u8"item"); itemJ) {
+          if (auto itemB = Item::From(itemJ, ctx, dataVersion); itemB) {
+            tag->set(u8"item", itemB);
+          } else {
+            tag->set(u8"item", Item::Empty());
+          }
+        }
+      }
+    }
+    tag->insert({{u8"isMovable", Bool(true)},
+                 {u8"id", String(u8"DecoratedPot")},
+                 {u8"animation", Byte(0)}});
+    if (!empty) {
+      tag->set(u8"sherds", sherdsB);
+    }
+    Attach(c, pos, *tag);
+    return tag;
+  }
+#pragma endregion
+
+#pragma region Converters: E
+  static CompoundTagPtr EnchantingTable(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    if (!c) {
+      return nullptr;
+    }
+    auto t = Empty(u8"EnchantTable", *c, pos);
+
+    // "rott"
+    // [-pi, pi] float, an angle of enchant table and player's position who placed the table.
+    // Java doesn't store such data in tile entity, so generate rott based on its xyz position.
+    mcfile::XXHash<u32> xx(0);
+    xx.update(&pos.fX, sizeof(pos.fX));
+    xx.update(&pos.fY, sizeof(pos.fY));
+    xx.update(&pos.fZ, sizeof(pos.fZ));
+    u32 seed = xx.digest();
+    std::mt19937 gen(seed);
+    std::uniform_real_distribution<float> distribution(-std::numbers::pi, std::numbers::pi);
+    float rott = distribution(gen);
+    t->set(u8"rott", Float(rott));
+
+    return t;
   }
 
-  static CompoundTagPtr PottedSapling(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    using namespace std;
+  static CompoundTagPtr EnderChest(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    auto ret = AnyStorage(u8"EnderChest", false)(pos, b, c, ctx, dataVersion);
+    ret->set(u8"Items", List<Tag::Type::Compound>());
+    return ret;
+  }
 
+  static CompoundTagPtr EndGateway(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    using namespace std;
+    if (!c) {
+      return nullptr;
+    }
     auto tag = Compound();
-    auto plantBlock = Compound();
-    auto states = Compound();
-    auto type = strings::RemovePrefixAndSuffix(u8"minecraft:potted_", b.fName, u8"_sapling");
-    states->set(u8"age_bit", Byte(0));
-    plantBlock->insert({
-        {u8"states", states},
-        {u8"name", String(Namespace::Add(type + u8"_sapling"))},
-        {u8"version", Int(kBlockDataVersion)},
-    });
     tag->insert({
-        {u8"id", String(u8"FlowerPot")},
+        {u8"id", String(u8"EndGateway")},
         {u8"isMovable", Bool(true)},
-        {u8"PlantBlock", plantBlock},
     });
+
+    auto age = c->int64(u8"Age", 0);
+    tag->set(u8"Age", Int(age));
+
+    auto exitPortal = c->compoundTag(u8"ExitPortal");
+    if (exitPortal) {
+      auto x = exitPortal->int32(u8"X");
+      auto y = exitPortal->int32(u8"Y");
+      auto z = exitPortal->int32(u8"Z");
+      if (x && y && z) {
+        auto ep = List<Tag::Type::Int>();
+        ep->push_back(Int(*x));
+        ep->push_back(Int(*y));
+        ep->push_back(Int(*z));
+        tag->set(u8"ExitPortal", ep);
+      }
+    }
     Attach(c, pos, *tag);
     return tag;
   }
 
+  static CompoundTagPtr EndPortal(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    auto tag = Compound();
+    tag->insert({
+        {u8"id", String(u8"EndPortal")},
+        {u8"isMovable", Bool(true)},
+    });
+    Attach(c, pos, *tag);
+    return tag;
+  }
+#pragma endregion
+
+#pragma region Converters: F
   static CompoundTagPtr FlowerPot(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
     using namespace std;
 
@@ -1536,68 +1118,572 @@ private:
     Attach(c, pos, *tag);
     return tag;
   }
+#pragma endregion
 
-  static CompoundTagPtr Banner(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+#pragma region Converters: H
+  static CompoundTagPtr Hopper(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    if (!c) {
+      return nullptr;
+    }
+    auto t = AnyStorage(u8"Hopper", std::nullopt)(pos, b, c, ctx, dataVersion);
+    CopyIntValues(*c, *t, {{u8"TransferCooldown", u8"TransferCooldown", 0}});
+    return t;
+  }
+#pragma endregion
+
+#pragma region Converters: J
+  static CompoundTagPtr Jigsaw(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    auto tag = New(u8"JigsawBlock");
+
+    if (c) {
+      CopyStringValues(*c, *tag, {{u8"final_state"}, {u8"joint"}, {u8"target"}, {u8"pool", u8"target_pool"}, {u8"name"}});
+    }
+
+    Attach(c, pos, *tag);
+    return tag;
+  }
+
+  static CompoundTagPtr Jukebox(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
     using namespace std;
+
     auto tag = Compound();
-
-    i32 type = 0;
-    if (auto customNameString = Migrate<StringTag>(c, u8"item_name", Depth::Root, u8"CustomName"); customNameString) {
-      if (auto customName = props::ParseAsJson(customNameString->fValue); customName) {
-        auto translate = GetAsString(*customName, "translate");
-        if (translate == u8"block.minecraft.ominous_banner") {
-          type = 1; // Illager Banner
-        }
-      }
-    } else if (auto itemName = GetComponent<CompoundTag>(c, u8"item_name"); itemName) {
-      if (auto translate = itemName->string(u8"translate"); translate == u8"block.minecraft.ominous_banner") {
-        type = 1; // Illager Banner
-      }
-    }
-
-    auto patternsJ = FallbackPtr<ListTag>(c, {u8"patterns", u8"Patterns"});
-    auto patternsB = List<Tag::Type::Compound>();
-    if (patternsJ && type != 1) {
-      for (auto const &pattern : *patternsJ) {
-        auto p = pattern->asCompound();
-        if (!p) {
-          continue;
-        }
-        ColorCodeJava color;
-        if (auto patternColor = p->string(u8"color"); patternColor) {
-          color = ColorCodeJavaFromJavaName(*patternColor);
-        } else if (auto legacyPatternColor = p->int32(u8"Color"); legacyPatternColor) {
-          color = static_cast<ColorCodeJava>(*legacyPatternColor);
-        } else {
-          continue;
-        }
-        auto patternJ = FallbackPtr<StringTag>(*p, {u8"pattern", u8"Pattern"});
-        if (!patternJ) {
-          continue;
-        }
-        auto patternB = Banner::BedrockOrLegacyJavaPatternFromJava(patternJ->fValue);
-        auto ptag = Compound();
-        ptag->insert({
-            {u8"Color", Int(static_cast<i32>(BannerColorCodeFromJava(color)))},
-            {u8"Pattern", String(Wrap(patternB, patternJ->fValue))},
-        });
-        patternsB->push_back(ptag);
-      }
-    }
-
-    i32 base = BannerColor(b.fName);
-
     tag->insert({
-        {u8"id", String(u8"Banner")},
+        {u8"id", String(u8"Jukebox")},
         {u8"isMovable", Bool(true)},
-        {u8"Type", Int(type)},
-        {u8"Base", Int(base)},
     });
-    if (!patternsB->empty()) {
-      tag->set(u8"Patterns", patternsB);
+
+    shared_ptr<CompoundTag> recordItem;
+    if (c) {
+      recordItem = c->compoundTag(u8"RecordItem");
+    }
+    if (recordItem) {
+      auto beRecordItem = Item::From(recordItem, ctx, dataVersion);
+      if (beRecordItem) {
+        tag->set(u8"RecordItem", beRecordItem);
+      }
+    }
+
+    Attach(c, pos, *tag);
+    return tag;
+  }
+#pragma endregion
+
+#pragma region Converters: L
+  static CompoundTagPtr Lectern(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    using namespace std;
+
+    auto tag = Compound();
+    tag->insert({
+        {u8"id", String(u8"Lectern")},
+        {u8"isMovable", Bool(true)},
+    });
+    shared_ptr<CompoundTag> book;
+    if (c) {
+      book = c->compoundTag(u8"Book");
+    }
+    if (book) {
+      auto item = Item::From(book, ctx, dataVersion);
+      if (item) {
+        tag->set(u8"book", item);
+        auto pages = item->query(u8"tag/pages")->asList();
+        if (auto page = c->int32(u8"Page"); page && page >= 0) {
+          tag->set(u8"page", Int(*page));
+        }
+        i32 totalPages;
+        if (pages) {
+          totalPages = pages->size();
+        } else {
+          totalPages = 0;
+        }
+        tag->set(u8"hasBook", Bool(true));
+        tag->set(u8"totalPages", Int(totalPages));
+      }
     }
     Attach(c, pos, *tag);
     return tag;
+  }
+
+  static CompoundTagPtr Lodestone(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    auto ret = New(u8"Lodestone");
+    i32 tracker = ctx.fLodestones->get(ctx.fWorldData.fDim, pos);
+    ret->set(u8"trackingHandle", Int(tracker));
+    Attach(c, pos, *ret);
+    return ret;
+  }
+#pragma endregion
+
+#pragma region Converters: M
+  static CompoundTagPtr MovingPiston(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    if (!c) {
+      return nullptr;
+    }
+    auto id = c->string(u8"id");
+    // id = "j2b:MovingBlock" block entity was created in Converter::PreprocessChunk
+    if (id != u8"j2b:MovingBlock") {
+      return nullptr;
+    }
+    std::u8string newId = id->substr(4);
+    c->set(u8"id", newId);
+    return c;
+  }
+#pragma endregion
+
+#pragma region Converters: N
+  static CompoundTagPtr Note(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    using namespace std;
+
+    auto note = strings::ToI32(b.property(u8"note", u8"0"));
+    if (!note) {
+      return nullptr;
+    }
+
+    auto tag = Compound();
+    tag->insert({
+        {u8"id", String(u8"Music")},
+        {u8"isMovable", Bool(true)},
+        {u8"note", Byte(*note)},
+    });
+    Attach(c, pos, *tag);
+    return tag;
+  }
+#pragma endregion
+
+#pragma region Converters: P
+  static CompoundTagPtr PottedBamboo(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    using namespace std;
+
+    auto tag = Compound();
+    auto plantBlock = Compound();
+    auto states = Compound();
+    states->insert({
+        {u8"age_bit", Byte(0)},
+        {u8"bamboo_leaf_size", String(u8"no_leaves")},
+        {u8"bamboo_stalk_thickness", String(u8"thin")},
+    });
+    plantBlock->insert({
+        {u8"states", states},
+        {u8"name", String(u8"minecraft:bamboo")},
+        {u8"version", Int(kBlockDataVersion)},
+    });
+    tag->insert({
+        {u8"id", String(u8"FlowerPot")},
+        {u8"isMovable", Bool(true)},
+        {u8"PlantBlock", plantBlock},
+    });
+    Attach(c, pos, *tag);
+    return tag;
+  }
+
+  static Converter PottedPlant(std::u8string const &name, std::map<std::u8string, std::variant<std::u8string, bool, i32, i8>> const &properties) {
+    return [=](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) -> CompoundTagPtr {
+      using namespace std;
+
+      auto tag = Compound();
+      auto plantBlock = Compound();
+      auto states = Compound();
+      for (auto const &p : properties) {
+        if (holds_alternative<u8string>(p.second)) {
+          states->set(p.first, get<u8string>(p.second));
+        } else if (holds_alternative<bool>(p.second)) {
+          states->set(p.first, Bool(get<bool>(p.second)));
+        } else if (holds_alternative<i32>(p.second)) {
+          states->set(p.first, Int(get<i32>(p.second)));
+        } else if (holds_alternative<i8>(p.second)) {
+          states->set(p.first, Byte(get<i8>(p.second)));
+        } else {
+          assert(false);
+        }
+      }
+      plantBlock->insert({
+          {u8"states", states},
+          {u8"name", String(u8"minecraft:" + name)},
+          {u8"version", Int(kBlockDataVersion)},
+      });
+      tag->insert({
+          {u8"id", String(u8"FlowerPot")},
+          {u8"isMovable", Bool(true)},
+          {u8"PlantBlock", plantBlock},
+      });
+      Attach(c, pos, *tag);
+      return tag;
+    };
+  }
+
+  static CompoundTagPtr PottedSapling(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    using namespace std;
+
+    auto tag = Compound();
+    auto plantBlock = Compound();
+    auto states = Compound();
+    auto type = strings::RemovePrefixAndSuffix(u8"minecraft:potted_", b.fName, u8"_sapling");
+    states->set(u8"age_bit", Byte(0));
+    plantBlock->insert({
+        {u8"states", states},
+        {u8"name", String(Namespace::Add(type + u8"_sapling"))},
+        {u8"version", Int(kBlockDataVersion)},
+    });
+    tag->insert({
+        {u8"id", String(u8"FlowerPot")},
+        {u8"isMovable", Bool(true)},
+        {u8"PlantBlock", plantBlock},
+    });
+    Attach(c, pos, *tag);
+    return tag;
+  }
+#pragma endregion
+
+#pragma region Converters: S
+  static CompoundTagPtr ShulkerBox(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    auto facing = BlockData::GetFacingDirectionAFromFacing(b);
+    auto tag = Compound();
+    tag->insert({
+        {u8"id", String(u8"ShulkerBox")},
+        {u8"facing", Byte((i8)facing)},
+        {u8"Findable", Bool(false)},
+        {u8"isMovable", Bool(true)},
+    });
+    auto items = GetItems(c, u8"Items", ctx, dataVersion, {.fConvertSlotTag = true});
+    if (items) {
+      tag->set(u8"Items", items);
+    }
+    Attach(c, pos, *tag);
+    return tag;
+  }
+
+  static CompoundTagPtr Skull(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    using namespace std;
+    using namespace mcfile::blocks;
+    auto tag = Compound();
+    auto rot = Wrap(strings::ToI32(b.property(u8"rotation", u8"0")), 0);
+    float rotation = Rotation::ClampDegreesBetweenMinus180And180(rot / 16.0f * 360.0f);
+    tag->insert({
+        {u8"id", String(u8"Skull")},
+        {u8"isMovable", Bool(true)},
+        {u8"DoingAnimation", Bool(false)},
+        {u8"MouthTickCount", Int(0)},
+        {u8"SkullType", Byte(-1)},
+        {u8"Rotation", Float(rotation)},
+    });
+    Attach(c, pos, *tag);
+    return tag;
+  }
+
+  static CompoundTagPtr StructureBlock(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    if (!c) {
+      return nullptr;
+    }
+    auto t = Empty(u8"StructureBlock", *c, pos);
+
+    t->set(u8"animationMode", Bool(false));
+    t->set(u8"animationSeconds", Float(0));
+    t->set(u8"dataField", u8"");
+    t->set(u8"includePlayers", Bool(false));
+    t->set(u8"redstoneSaveMode", Int(0));
+    t->set(u8"removeBlocks", Bool(false));
+
+    CopyBoolValues(*c, *t, {{u8"ignoreEntities"}, {u8"powered", u8"isPowered"}, {u8"showboundingbox", u8"showBoundingBox"}});
+    CopyFloatValues(*c, *t, {{u8"integrity"}});
+    CopyStringValues(*c, *t, {{u8"name", u8"structureName"}, {u8"metadata", u8"dataField"}});
+    CopyIntValues(*c, *t, {
+                              {u8"posX", u8"xStructureOffset"},
+                              {u8"posY", u8"yStructureOffset"},
+                              {u8"posZ", u8"zStructureOffset"},
+                              {u8"sizeX", u8"xStructureSize"},
+                              {u8"sizeY", u8"yStructureSize"},
+                              {u8"sizeZ", u8"zStructureSize"},
+                          });
+    CopyLongValues(*c, *t, {{u8"seed"}});
+
+    // "NONE", "LEFT_RIGHT" (displayed as "<- ->"), "FRONT_BACK" (displayed as "^v")
+    auto mirror = c->string(u8"mirror", u8"NONE");
+    i8 mirrorMode = 0; // NONE
+    if (mirror == u8"LEFT_RIGHT") {
+      mirrorMode = 1;
+    } else if (mirror == u8"FRONT_BACK") {
+      mirrorMode = 2;
+    }
+    t->set(u8"mirror", Byte(mirrorMode));
+
+    // "LOAD", "SAVE", "CORNER"
+    auto mode = c->string(u8"mode", u8"LOAD");
+    int data;
+    if (mode == u8"SAVE") {
+      data = 1;
+    } else if (mode == u8"CORNER") {
+      data = 3;
+    } else { // "LOAD"
+      data = 2;
+    }
+    t->set(u8"data", Int(data));
+
+    // "NONE" (displayed as "0"), "CLOCKWISE_90" (displayed as "90"), "CLOCKWISE_180" (displayed as "180"), "COUNTERCLOCKWISE_90" (displayed as "270")
+    auto rotation = c->string(u8"rotation", u8"NONE");
+    i8 rot = 0;
+    if (rotation == u8"NONE") {
+      rot = 0;
+    } else if (rotation == u8"CLOCKWISE_90") {
+      rot = 1;
+    } else if (rotation == u8"CLOCKWISE_180") {
+      rot = 2;
+    } else if (rotation == u8"COUNTERCLOCKWISE_90") {
+      rot = 3;
+    }
+    t->set(u8"rotation", Byte(rot));
+
+    return t;
+  }
+#pragma endregion
+
+#pragma region Converters: T
+  static CompoundTagPtr TrialSpawner(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    auto ret = New(u8"TrialSpawner");
+    if (c) {
+      if (auto spawnDataJ = c->compoundTag(u8"spawn_data"); spawnDataJ) {
+        auto spawnDataB = Compound();
+        if (auto entityJ = spawnDataJ->compoundTag(u8"entity"); entityJ) {
+          if (auto idJ = entityJ->string(u8"id"); idJ) {
+            spawnDataB->set(u8"TypeId", *idJ);
+            spawnDataB->set(u8"Weight", Int(1));
+            ret->set(u8"spawn_data", spawnDataB);
+          }
+        }
+      }
+      for (auto const &key : {u8"registered_players", u8"current_mobs"}) {
+        if (auto uuidListJ = c->listTag(key); uuidListJ) {
+          auto uuidListB = ConvertUuidList(*uuidListJ, ctx);
+          ret->set(key, uuidListB);
+        }
+      }
+      bool hasNormalConfig = false;
+      bool hasOminousConfig = false;
+      if (auto config = c->compoundTag(u8"normal_config"); config) {
+        ret->set(u8"normal_config", TrialSpawnerReplaceConfigLootTables(config));
+        hasNormalConfig = true;
+      }
+      if (auto config = c->compoundTag(u8"ominous_config"); config) {
+        ret->set(u8"ominous_config", TrialSpawnerReplaceConfigLootTables(config));
+        hasOminousConfig = true;
+      }
+      if (hasNormalConfig || hasOminousConfig) {
+        if (!hasNormalConfig) {
+          ret->set(u8"normal_config", Compound());
+        }
+      } else {
+        // trial spawner that was placed by player in creative mode
+        ret->set(u8"spawn_range", Int(4));
+        ret->set(u8"total_mobs", Float(6));
+        ret->set(u8"total_mobs_added_per_player", Float(1));
+        ret->set(u8"ticks_between_spawn", Int(20));
+        ret->set(u8"simultaneous_mobs", Float(2));
+        ret->set(u8"simultaneous_mobs_added_per_player", Float(1));
+      }
+      CopyLongValues(*c, *ret, {{u8"next_mob_spawns_at"}, {u8"cooldown_end_at"}});
+      ret->set(u8"required_player_range", Int(14));
+    }
+    Attach(c, pos, *ret);
+    return ret;
+  }
+#pragma endregion
+
+#pragma region Converters: V
+  static CompoundTagPtr Vault(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+    auto ret = New(u8"Vault");
+    if (c) {
+      auto configB = Compound();
+      configB->set(u8"activation_range", Float(4));
+      configB->set(u8"deactivation_range", Float(4.5));
+      configB->set(u8"loot_table", u8"loot_tables/chests/trial_chambers/reward.json");
+      configB->set(u8"override_loot_table_to_display", u8"");
+      if (auto configJ = c->compoundTag(u8"config"); configJ) {
+        if (auto keyItemJ = configJ->compoundTag(u8"key_item"); keyItemJ) {
+          if (auto keyItemB = Item::From(keyItemJ, ctx, dataVersion); keyItemB) {
+            configB->set(u8"key_item", keyItemB);
+          }
+        }
+      }
+
+      auto dataB = Compound();
+      if (auto serverDataJ = c->compoundTag(u8"server_data"); serverDataJ) {
+        auto rewarededPlayersB = List<Tag::Type::Long>();
+        if (auto rewarededPlayersJ = serverDataJ->listTag(u8"rewarded_players"); rewarededPlayersJ) {
+          for (auto const &it : *rewarededPlayersJ) {
+            auto v = it->asIntArray();
+            if (!v) {
+              continue;
+            }
+            if (auto idJ = Uuid::FromIntArray(*v); idJ) {
+              auto idB = ctx.fUuids->toId(*idJ);
+              rewarededPlayersB->push_back(Long(idB));
+            }
+          }
+        }
+        dataB->set(u8"rewarded_players", rewarededPlayersB);
+
+        auto itemsToEjectB = List<Tag::Type::Compound>();
+        if (auto itemsToEjectJ = serverDataJ->listTag(u8"items_to_eject"); itemsToEjectJ) {
+          for (auto const &it : *itemsToEjectJ) {
+            auto v = std::dynamic_pointer_cast<CompoundTag>(it);
+            if (!v) {
+              continue;
+            }
+            if (auto converted = Item::From(v, ctx, dataVersion); converted) {
+              itemsToEjectB->push_back(converted);
+            }
+          }
+        }
+        dataB->set(u8"items_to_eject", itemsToEjectB);
+
+        CopyLongValues(*serverDataJ, *dataB, {{u8"state_updating_resumes_at"}, {u8"total_ejections_needed"}});
+      }
+      if (auto sharedDataJ = c->compoundTag(u8"shared_data"); sharedDataJ) {
+        if (auto displayItemJ = sharedDataJ->compoundTag(u8"display_item"); displayItemJ) {
+          if (auto displayItemB = Item::From(displayItemJ, ctx, dataVersion); displayItemB) {
+            dataB->set(u8"display_item", displayItemB);
+          }
+        }
+      }
+      ret->set(u8"config", configB);
+      ret->set(u8"data", dataB);
+    }
+    Attach(c, pos, *ret);
+    return ret;
+  }
+#pragma endregion
+
+#pragma region Converter Generator
+  static Converter AnyStorage(std::u8string const &name, std::optional<bool> findable) {
+    return [=](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
+      using namespace std;
+
+      auto tag = Compound();
+
+      if (c) {
+        if (LootTable::JavaToBedrock(*c, *tag) == LootTable::State::NoLootTable) {
+          if (auto items = GetItems(c, u8"Items", ctx, dataVersion, {.fConvertSlotTag = true}); items) {
+            tag->set(u8"Items", items);
+          }
+        }
+      }
+
+      tag->insert({
+          {u8"id", String(name)},
+          {u8"isMovable", Bool(true)},
+      });
+      if (findable) {
+        tag->set(u8"Findable", Bool(*findable));
+      }
+      Attach(c, pos, *tag);
+      return tag;
+    };
+  }
+
+  static Converter Furnace(std::u8string id) {
+    return [id](Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &comp, Context &ctx, DataVersion const &dataVersion) {
+      auto ret = AnyStorage(id, std::nullopt)(pos, b, comp, ctx, dataVersion);
+      if (comp) {
+        CopyShortValues(*comp, *ret, {{u8"lit_total_time", u8"BurnDuration"}, //
+                                      {u8"BurnTime", u8"BurnDuration"},       //
+                                      {u8"cooking_time_spent", u8"CookTime"}, //
+                                      {u8"CookTime"},                         //
+                                      {u8"lit_time_remaining", u8"BurnTime"}, //
+                                      {u8"CookTimeTotal", u8"BurnTime"}});
+      }
+      return ret;
+    };
+  }
+
+  static Converter NamedEmpty(std::u8string id) {
+    return [id](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) -> CompoundTagPtr {
+      if (!c) {
+        return nullptr;
+      }
+      return Empty(id, *c, pos);
+    };
+  }
+
+  static Converter NamedEmptyFromNull(std::u8string id) {
+    return [id](Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) -> CompoundTagPtr {
+      return Empty(id, {}, pos);
+    };
+  }
+
+  static Converter Sign(std::u8string id) {
+    return [id](Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) -> CompoundTagPtr {
+      using namespace je2be::props;
+      using namespace std;
+
+      if (!c) {
+        return nullptr;
+      }
+
+      auto tag = Compound();
+
+      CompoundTagPtr frontTextJ, backTextJ;
+      if (auto data = BlockEntityData(c); data) {
+        frontTextJ = data->compoundTag(u8"front_text");
+        backTextJ = data->compoundTag(u8"back_text");
+      } else {
+        frontTextJ = c->compoundTag(u8"front_text");
+        backTextJ = c->compoundTag(u8"back_text");
+      }
+      if (frontTextJ || backTextJ) {
+        if (frontTextJ) {
+          auto frontTextB = SignText(*frontTextJ);
+          tag->set(u8"FrontText", frontTextB);
+        } else {
+          tag->set(u8"FrontText", SignTextEmpty());
+        }
+        if (backTextJ) {
+          auto backTextB = SignText(*backTextJ);
+          tag->set(u8"BackText", backTextB);
+        } else {
+          tag->set(u8"BackText", SignTextEmpty());
+        }
+      } else {
+        auto color = Wrap<u8string>(c->string(u8"Color"), u8"black");
+        auto text1 = GetTextComponent(c->string(u8"Text1", u8""));
+        auto text2 = GetTextComponent(c->string(u8"Text2", u8""));
+        auto text3 = GetTextComponent(c->string(u8"Text3", u8""));
+        auto text4 = GetTextComponent(c->string(u8"Text4", u8""));
+        Rgba signTextColor = SignColor::BedrockTexteColorFromJavaColorCode(ColorCodeJavaFromJavaName(color));
+        bool glowing = c->boolean(u8"GlowingText", false);
+        u8string text = text1 + u8"\x0a" + text2 + u8"\x0a" + text3 + u8"\x0a" + text4;
+        auto frontTextB = Compound();
+        frontTextB->set(u8"Text", text);
+        frontTextB->set(u8"TextOwner", u8"");
+        frontTextB->set(u8"SignTextColor", Int(signTextColor.toARGB()));
+        frontTextB->set(u8"IgnoreLighting", Bool(glowing));
+        frontTextB->set(u8"HideGlowOutline", Bool(false));
+        frontTextB->set(u8"PersistFormatting", Bool(false));
+        tag->set(u8"FrontText", frontTextB);
+        tag->set(u8"BackText", SignTextEmpty());
+      }
+      tag->insert({
+          {u8"id", String(id)},
+          {u8"isMovable", Bool(true)},
+      });
+      CopyBoolValues(*c, *tag, {{u8"is_waxed", u8"IsWaxed"}});
+      Attach(c, pos, *tag);
+      return tag;
+    };
+  }
+#pragma endregion
+
+#pragma region Utilities
+  static void Attach(CompoundTagPtr const &c, Pos3i const &pos, CompoundTag &tag) {
+    tag.set(u8"x", Int(pos.fX));
+    tag.set(u8"y", Int(pos.fY));
+    tag.set(u8"z", Int(pos.fZ));
+
+    if (c) {
+      auto customNameJ = c->string(u8"CustomName");
+      if (customNameJ) {
+        auto customNameB = props::GetTextComponent(*customNameJ);
+        if (!customNameB.empty()) {
+          tag.set(u8"CustomName", customNameB);
+        }
+      }
+    }
   }
 
   static i32 BannerColor(std::u8string_view const &name) {
@@ -1661,57 +1747,29 @@ private:
     return found->second;
   }
 
-  static CompoundTagPtr Bed(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    auto tag = Compound();
-    auto color = BedColor(b.fName);
-    tag->insert({
-        {u8"id", String(u8"Bed")},
-        {u8"color", Byte(color)},
-        {u8"isMovable", Bool(true)},
-    });
-    Attach(c, pos, *tag);
-    return tag;
-  }
-
-  static CompoundTagPtr ShulkerBox(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) {
-    auto facing = BlockData::GetFacingDirectionAFromFacing(b);
-    auto tag = Compound();
-    tag->insert({
-        {u8"id", String(u8"ShulkerBox")},
-        {u8"facing", Byte((i8)facing)},
-        {u8"Findable", Bool(false)},
-        {u8"isMovable", Bool(true)},
-    });
-    auto items = GetItems(c, u8"Items", ctx, dataVersion, {.fConvertSlotTag = true});
-    if (items) {
-      tag->set(u8"Items", items);
+  static CompoundTagPtr BlockEntityData(CompoundTagPtr const &c) {
+    if (!c) {
+      return nullptr;
     }
-    Attach(c, pos, *tag);
-    return tag;
-  }
-
-  static std::optional<std::u8string> GetAsString(props::Json const &obj, std::string const &key) {
-    auto found = obj.find(key);
-    if (found == obj.end()) {
-      return std::nullopt;
+    auto component = c->compoundTag(u8"components");
+    if (!component) {
+      return nullptr;
     }
-    return props::GetJsonStringValue(*found);
+    return component->compoundTag(u8"minecraft:block_entity_data");
   }
 
-  static void Attach(CompoundTagPtr const &c, Pos3i const &pos, CompoundTag &tag) {
-    tag.set(u8"x", Int(pos.fX));
-    tag.set(u8"y", Int(pos.fY));
-    tag.set(u8"z", Int(pos.fZ));
-
-    if (c) {
-      auto customNameJ = c->string(u8"CustomName");
-      if (customNameJ) {
-        auto customNameB = props::GetTextComponent(*customNameJ);
-        if (!customNameB.empty()) {
-          tag.set(u8"CustomName", customNameB);
+  static ListTagPtr ConvertUuidList(ListTag const &java, Context const &ctx) {
+    auto bedrock = List<Tag::Type::Compound>();
+    for (auto const &it : java) {
+      if (auto uuidJ = it->asIntArray(); uuidJ) {
+        if (auto uuid = Uuid::FromIntArray(*uuidJ); uuid) {
+          auto uuidB = Compound();
+          uuidB->set(u8"uuid", Long(ctx.fUuids->toId(*uuid)));
+          bedrock->push_back(uuidB);
         }
       }
     }
+    return bedrock;
   }
 
   static CompoundTagPtr Empty(std::u8string const &name, CompoundTag const &tagJ, Pos3i const &pos) {
@@ -1732,32 +1790,12 @@ private:
     return ret;
   }
 
-  static ListTagPtr GetItemsRemovingSlot(CompoundTagPtr const &c, std::u8string const &name, Context &ctx, size_t capacity, DataVersion const &dataVersion) {
-    auto itemsB = List<Tag::Type::Compound>();
-    for (int i = 0; i < capacity; i++) {
-      itemsB->push_back(Item::Empty());
+  static std::optional<std::u8string> GetAsString(props::Json const &obj, std::string const &key) {
+    auto found = obj.find(key);
+    if (found == obj.end()) {
+      return std::nullopt;
     }
-    auto items = GetItems(c, name, ctx, dataVersion, {.fConvertSlotTag = true});
-    if (!items) {
-      return itemsB;
-    }
-    for (auto &it : *items) {
-      auto item = it->asCompound();
-      if (!item) {
-        continue;
-      }
-      auto slot = item->byte(u8"Slot");
-      if (!slot) {
-        continue;
-      }
-      if (*slot < 0 || 5 < *slot) {
-        continue;
-      }
-      auto copy = item->copy();
-      copy->erase(u8"Slot");
-      itemsB->fValue[*slot] = copy;
-    }
-    return itemsB;
+    return props::GetJsonStringValue(*found);
   }
 
   struct GetItemsOption {
@@ -1791,6 +1829,34 @@ private:
     return tag;
   }
 
+  static ListTagPtr GetItemsRemovingSlot(CompoundTagPtr const &c, std::u8string const &name, Context &ctx, size_t capacity, DataVersion const &dataVersion) {
+    auto itemsB = List<Tag::Type::Compound>();
+    for (int i = 0; i < capacity; i++) {
+      itemsB->push_back(Item::Empty());
+    }
+    auto items = GetItems(c, name, ctx, dataVersion, {.fConvertSlotTag = true});
+    if (!items) {
+      return itemsB;
+    }
+    for (auto &it : *items) {
+      auto item = it->asCompound();
+      if (!item) {
+        continue;
+      }
+      auto slot = item->byte(u8"Slot");
+      if (!slot) {
+        continue;
+      }
+      if (*slot < 0 || 5 < *slot) {
+        continue;
+      }
+      auto copy = item->copy();
+      copy->erase(u8"Slot");
+      itemsB->fValue[*slot] = copy;
+    }
+    return itemsB;
+  }
+
   static ListTag const *GetList(CompoundTagPtr const &c, std::u8string const &name) {
     if (!c) {
       return nullptr;
@@ -1802,80 +1868,11 @@ private:
     return found->second->asList();
   }
 
-  static CompoundTagPtr Chest(Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &comp, Context &ctx, DataVersion const &dataVersion) {
-    using namespace std;
-
-    auto type = b.property(u8"type", u8"single");
-    auto facing = b.property(u8"facing", u8"north");
-    optional<Pos2i> pairPos;
-    Facing4 f4 = Facing4FromJavaName(facing);
-    Pos2i direction = Pos2iFromFacing4(f4);
-    if (type == u8"left") {
-      pairPos = Pos2i(pos.fX, pos.fZ) + Right90(direction);
-    } else if (type == u8"right") {
-      pairPos = Pos2i(pos.fX, pos.fZ) + Left90(direction);
-    }
-
+  static CompoundTagPtr New(std::u8string const &id) {
     auto tag = Compound();
-    if (comp) {
-      tag->set(u8"Items", List<Tag::Type::Compound>());
-      if (auto st = LootTable::JavaToBedrock(*comp, *tag); st == LootTable::State::NoLootTable) {
-        auto items = GetItems(comp, u8"Items", ctx, dataVersion, {.fConvertSlotTag = true});
-        if (items) {
-          tag->set(u8"Items", items);
-        }
-      }
-    }
-
-    tag->insert({
-        {u8"Findable", Bool(false)},
-        {u8"id", String(u8"Chest")},
-        {u8"isMovable", Bool(true)},
-    });
-    if (pairPos) {
-      tag->set(u8"pairlead", Bool(type == u8"right"));
-      tag->set(u8"pairx", Int(pairPos->fX));
-      tag->set(u8"pairz", Int(pairPos->fZ));
-    }
-    Attach(comp, pos, *tag);
+    tag->set(u8"isMovable", Bool(true));
+    tag->set(u8"id", id);
     return tag;
-  }
-
-  static CompoundTagPtr CopperGolemStatue(Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &j, Context &ctx, DataVersion const &dataVersion) {
-    auto tagB = Compound();
-    auto actor = Compound();
-    actor->set(u8"ActorIdentifier", String(u8"minecraft:copper_golem<>"));
-    actor->set(u8"SaveData", Compound());
-    tagB->set(u8"Actor", actor);
-    tagB->set(u8"id", String(u8"CopperGolemStatue"));
-    tagB->set(u8"isMovable", Bool(true));
-    auto poseJ = b.property(u8"copper_golem_pose", u8"standing");
-    int poseB = 0;
-    if (poseJ == u8"sitting") {
-      poseB = 1;
-    } else if (poseJ == u8"running") {
-      poseB = 2;
-    } else if (poseJ == u8"star") {
-      poseB = 3;
-    }
-    tagB->set(u8"Pose", Int(poseB));
-    Attach(j, pos, *tagB);
-    return tagB;
-  }
-
-  static Converter Furnace(std::u8string id) {
-    return [id](Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &comp, Context &ctx, DataVersion const &dataVersion) {
-      auto ret = AnyStorage(id, std::nullopt)(pos, b, comp, ctx, dataVersion);
-      if (comp) {
-        CopyShortValues(*comp, *ret, {{u8"lit_total_time", u8"BurnDuration"}, //
-                                      {u8"BurnTime", u8"BurnDuration"},       //
-                                      {u8"cooking_time_spent", u8"CookTime"}, //
-                                      {u8"CookTime"},                         //
-                                      {u8"lit_time_remaining", u8"BurnTime"}, //
-                                      {u8"CookTimeTotal", u8"BurnTime"}});
-      }
-      return ret;
-    };
   }
 
   static CompoundTagPtr SignTextEmpty() {
@@ -1932,77 +1929,112 @@ private:
     return ret;
   }
 
-  static CompoundTagPtr BlockEntityData(CompoundTagPtr const &c) {
+  static CompoundTagPtr Spawner(CompoundTagPtr const &c) {
     if (!c) {
       return nullptr;
     }
-    auto component = c->compoundTag(u8"components");
-    if (!component) {
+    auto x = c->int32(u8"x");
+    auto y = c->int32(u8"y");
+    auto z = c->int32(u8"z");
+    if (!x || !y || !z) {
       return nullptr;
     }
-    return component->compoundTag(u8"minecraft:block_entity_data");
+
+    auto tag = Compound();
+
+    std::u8string mob;
+    auto spawnData = c->compoundTag(u8"SpawnData");
+    if (spawnData) {
+      auto entity = spawnData->compoundTag(u8"entity");
+      if (entity) {
+        auto id = entity->string(u8"id");
+        if (id) {
+          mob = *id;
+        }
+      } else {
+        auto id = spawnData->string(u8"id");
+        if (id) {
+          mob = *id;
+        }
+      }
+    }
+
+    CopyShortValues(*c, *tag, {{u8"MaxNearbyEntities", u8"MaxNearbyEntities", 6}, {u8"MaxSpawnDelay", u8"MaxSpawnDelay", 800}, {u8"MinSpawnDelay", u8"MinSpawnDelay", 200}, {u8"RequiredPlayerRange", u8"RequiredPlayerRange", 16}, {u8"Delay", u8"Delay", 0}, {u8"SpawnCount", u8"SpawnCount", 4}, {u8"SpawnRange", u8"SpawnRange", 4}});
+
+    tag->insert({
+        {u8"x", Int(*x)},
+        {u8"y", Int(*y)},
+        {u8"z", Int(*z)},
+        {u8"id", String(u8"MobSpawner")},
+        {u8"isMovable", Bool(true)},
+        {u8"DisplayEntityHeight", Float(1.8)},
+        {u8"DisplayEntityScale", Float(1)},
+        {u8"DisplayEntityWidth", Float(0.8)},
+    });
+    tag->set(u8"EntityIdentifier", mob);
+    return tag;
   }
 
-  static Converter Sign(std::u8string id) {
-    return [id](Pos3i const &pos, mcfile::je::Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) -> CompoundTagPtr {
-      using namespace je2be::props;
-      using namespace std;
+  static CompoundTagPtr TrialSpawnerReplaceConfigLootTables(CompoundTagPtr java) {
+    auto bedrock = java->copy();
+    if (auto dropJ = java->string(u8"items_to_drop_when_ominous"); dropJ) {
+      if (auto dropB = LootTable::BedrockTableNameFromJava(*dropJ); dropB) {
+        bedrock->set(u8"items_to_drop_when_ominous", *dropB);
+      }
+    }
+    if (auto tablesJ = java->listTag(u8"loot_tables_to_eject"); tablesJ) {
+      auto tablesB = List<Tag::Type::Compound>();
+      for (auto const &it : *tablesJ) {
+        if (auto tableJ = it->asCompound(); tableJ) {
+          auto tableB = tableJ->copy();
+          if (auto dataJ = tableJ->string(u8"data"); dataJ) {
+            if (auto dataB = LootTable::BedrockTableNameFromJava(*dataJ); dataB) {
+              tableB->set(u8"data", *dataB);
+            }
+          }
+          tablesB->push_back(tableB);
+        }
+      }
+      bedrock->set(u8"loot_tables_to_eject", tablesB);
+    }
+    return bedrock;
+  }
+#pragma endregion
 
+  struct PistonArm {
+    explicit PistonArm(bool sticky) : sticky(sticky) {}
+
+    CompoundTagPtr operator()(Pos3i const &pos, Block const &b, CompoundTagPtr const &c, Context &ctx, DataVersion const &dataVersion) const {
       if (!c) {
         return nullptr;
       }
-
-      auto tag = Compound();
-
-      CompoundTagPtr frontTextJ, backTextJ;
-      if (auto data = BlockEntityData(c); data) {
-        frontTextJ = data->compoundTag(u8"front_text");
-        backTextJ = data->compoundTag(u8"back_text");
-      } else {
-        frontTextJ = c->compoundTag(u8"front_text");
-        backTextJ = c->compoundTag(u8"back_text");
+      auto id = c->string(u8"id");
+      if (!id) {
+        return nullptr;
       }
-      if (frontTextJ || backTextJ) {
-        if (frontTextJ) {
-          auto frontTextB = SignText(*frontTextJ);
-          tag->set(u8"FrontText", frontTextB);
-        } else {
-          tag->set(u8"FrontText", SignTextEmpty());
-        }
-        if (backTextJ) {
-          auto backTextB = SignText(*backTextJ);
-          tag->set(u8"BackText", backTextB);
-        } else {
-          tag->set(u8"BackText", SignTextEmpty());
-        }
+      if (*id == u8"j2b:PistonArm") {
+        c->set(u8"id", u8"PistonArm");
+        return c;
       } else {
-        auto color = Wrap<u8string>(c->string(u8"Color"), u8"black");
-        auto text1 = GetTextComponent(c->string(u8"Text1", u8""));
-        auto text2 = GetTextComponent(c->string(u8"Text2", u8""));
-        auto text3 = GetTextComponent(c->string(u8"Text3", u8""));
-        auto text4 = GetTextComponent(c->string(u8"Text4", u8""));
-        Rgba signTextColor = SignColor::BedrockTexteColorFromJavaColorCode(ColorCodeJavaFromJavaName(color));
-        bool glowing = c->boolean(u8"GlowingText", false);
-        u8string text = text1 + u8"\x0a" + text2 + u8"\x0a" + text3 + u8"\x0a" + text4;
-        auto frontTextB = Compound();
-        frontTextB->set(u8"Text", text);
-        frontTextB->set(u8"TextOwner", u8"");
-        frontTextB->set(u8"SignTextColor", Int(signTextColor.toARGB()));
-        frontTextB->set(u8"IgnoreLighting", Bool(glowing));
-        frontTextB->set(u8"HideGlowOutline", Bool(false));
-        frontTextB->set(u8"PersistFormatting", Bool(false));
-        tag->set(u8"FrontText", frontTextB);
-        tag->set(u8"BackText", SignTextEmpty());
+        auto ret = Compound();
+        ret->set(u8"id", u8"PistonArm");
+        ret->set(u8"isMovable", Bool(false));
+        ret->set(u8"LastProgress", Float(1));
+        ret->set(u8"NewState", Byte(2));
+        ret->set(u8"Progress", Float(1));
+        ret->set(u8"State", Byte(2));
+        ret->set(u8"Sticky", Bool(sticky));
+        auto attachedBlocks = List<Tag::Type::Int>();
+        auto breakBlocks = List<Tag::Type::Int>();
+        ret->set(u8"AttachedBlocks", attachedBlocks);
+        ret->set(u8"BreakBlocks", breakBlocks);
+        Attach(c, pos, *ret);
+        return ret;
       }
-      tag->insert({
-          {u8"id", String(id)},
-          {u8"isMovable", Bool(true)},
-      });
-      CopyBoolValues(*c, *tag, {{u8"is_waxed", u8"IsWaxed"}});
-      Attach(c, pos, *tag);
-      return tag;
-    };
-  }
+    }
+
+    bool const sticky;
+  };
 };
 
 bool TileEntity::IsTileEntity(mcfile::blocks::BlockId id) {

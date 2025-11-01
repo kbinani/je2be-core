@@ -71,7 +71,7 @@ public:
     }
   }
 
-#pragma region Dedicated converters
+#pragma region Converters: B
   static std::optional<Result> Banner(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
     using namespace std;
     auto base = tag.int32(u8"Base", 0);
@@ -253,7 +253,9 @@ public:
     r.fBlock = blockJ.applying(p);
     return r;
   }
+#pragma endregion
 
+#pragma region Converters: C
   static std::optional<Result> Campfire(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
     using namespace std;
     auto items = List<Tag::Type::Compound>();
@@ -450,6 +452,20 @@ public:
     return r;
   }
 
+  static std::optional<Result> CreakingHeart(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
+    Result r;
+    auto t = EmptyShortName(u8"creaking_heart", pos);
+    r.fTileEntity = t;
+    if (auto idB = tagB.int64(u8"SpawnedCreakingID"); idB) {
+      auto id = ConvertEntityId(*idB, ctx);
+      auto idJ = id.toIntArrayTag();
+      t->set(u8"creaking", idJ);
+    }
+    return r;
+  }
+#pragma endregion
+
+#pragma region Converters: D
   static std::optional<Result> DecoratedPot(Pos3i const &pos, mcfile::be::Block const &blockB, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
     auto t = EmptyShortName(u8"decorated_pot", pos);
     auto sherdsJ = List<Tag::Type::String>();
@@ -485,7 +501,9 @@ public:
     r.fTileEntity = t;
     return r;
   }
+#pragma endregion
 
+#pragma region Converters: E
   static std::optional<Result> EndGateway(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
     auto t = EmptyShortName(u8"end_gateway", pos);
     if (auto exitPortalB = props::GetPos3iFromListTag(tagB, u8"ExitPortal"); exitPortalB) {
@@ -502,7 +520,9 @@ public:
     r.fTileEntity = t;
     return r;
   }
+#pragma endregion
 
+#pragma region Converters: F
   static std::optional<Result> FlowerPot(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
     using namespace std;
     auto plantBlock = tagB.compoundTag(u8"PlantBlock");
@@ -579,7 +599,9 @@ public:
     r.fTileEntity = te;
     return r;
   }
+#pragma endregion
 
+#pragma region Converters: H
   static std::optional<Result> Hopper(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
     auto t = EmptyShortName(u8"hopper", pos);
     auto items = ContainerItems(tagB, u8"Items", ctx, opt);
@@ -591,7 +613,9 @@ public:
     r.fTileEntity = t;
     return r;
   }
+#pragma endregion
 
+#pragma region Converters: J
   static std::optional<Result> Jigsaw(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
     auto t = EmptyShortName(u8"jigsaw", pos);
     CopyStringValues(tag, *t, {{u8"final_state"}, {u8"joint"}, {u8"target"}, {u8"target_pool", u8"pool"}, {u8"name"}});
@@ -615,7 +639,9 @@ public:
     r.fTileEntity = te;
     return r;
   }
+#pragma endregion
 
+#pragma region Converters: L
   static std::optional<Result> Lectern(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
     using namespace std;
     auto te = EmptyShortName(u8"lectern", pos);
@@ -638,7 +664,9 @@ public:
     r.fTileEntity = te;
     return r;
   }
+#pragma endregion
 
+#pragma region Converters: M
   static std::optional<Result> MobSpawner(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
     using namespace std;
     auto t = EmptyShortName(u8"mob_spawner", pos);
@@ -671,7 +699,9 @@ public:
     r.fTileEntity = t;
     return r;
   }
+#pragma endregion
 
+#pragma region Converters: N
   static std::optional<Result> Noteblock(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
     using namespace std;
     auto note = tag.byte(u8"note");
@@ -683,7 +713,9 @@ public:
     r.fBlock = blockJ.applying(p);
     return r;
   }
+#pragma endregion
 
+#pragma region Converters: S
   static std::optional<Result> SameNameEmpty(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
     Result r;
     r.fTileEntity = EmptyFullName(block.fName, pos);
@@ -773,59 +805,6 @@ public:
     messages->push_back(String(u8R"({"text":""})"));
     ret->set(u8"messages", messages);
     return ret;
-  }
-
-  static Converter Sign(std::u8string id) {
-    return [id](Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) -> std::optional<Result> {
-      using namespace std;
-      auto te = EmptyShortName(id, pos);
-
-      auto frontTextB = tag.compoundTag(u8"FrontText");
-      auto backTextB = tag.compoundTag(u8"BackText");
-      if (frontTextB || backTextB) {
-        if (frontTextB) {
-          auto frontTextJ = SignText(*frontTextB, opt.fOutputDataVersion);
-          te->set(u8"front_text", frontTextJ);
-        } else {
-          te->set(u8"front_text", SignTextEmpty());
-        }
-        if (backTextB) {
-          auto backTextJ = SignText(*backTextB, opt.fOutputDataVersion);
-          te->set(u8"back_text", backTextJ);
-        } else {
-          te->set(u8"back_text", SignTextEmpty());
-        }
-      } else {
-        auto frontTextJ = Compound();
-        CopyBoolValues(tag, *frontTextJ, {{u8"IgnoreLighting", u8"GlowingText", false}});
-        auto color = tag.int32(u8"SignTextColor");
-        if (color) {
-          Rgba rgba = Rgba::FromRGB(*color);
-          ColorCodeJava jcc = SignColor::MostSimilarColor(rgba);
-          frontTextJ->set(u8"Color", JavaNameFromColorCodeJava(jcc));
-        }
-        auto text = tag.string(u8"Text", u8"");
-        vector<u8string> lines = mcfile::String::Split(text, u8'\n');
-        auto messagesJ = List<Tag::Type::String>();
-        for (int i = 0; i < 4; i++) {
-          u8string key = u8"Text" + mcfile::String::ToString(i + 1);
-          u8string line = i < lines.size() ? lines[i] : u8"";
-          props::Json json;
-          props::SetJsonString(json, u8"text", line);
-          messagesJ->push_back(String(props::StringFromJson(json)));
-        }
-        frontTextJ->set(u8"messages", messagesJ);
-
-        te->set(u8"front_text", frontTextJ);
-        te->set(u8"back_text", SignTextEmpty());
-      }
-
-      CopyBoolValues(tag, *te, {{u8"IsWaxed", u8"is_waxed"}});
-
-      Result r;
-      r.fTileEntity = te;
-      return r;
-    };
   }
 
   static std::optional<Result> Skull(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
@@ -945,7 +924,9 @@ public:
     r.fTileEntity = t;
     return r;
   }
+#pragma endregion
 
+#pragma region Converters: T
   static std::optional<Result> TrialSpawner(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
     auto t = EmptyShortName(u8"trial_spawner", pos);
 
@@ -995,19 +976,6 @@ public:
     return r;
   }
 
-  static ListTagPtr ConvertUuidList(ListTag const &bedrock, Context const &ctx) {
-    auto java = List<Tag::Type::IntArray>();
-    for (auto const &it : bedrock) {
-      if (auto uuidB = it->asCompound(); uuidB) {
-        if (auto uuid = uuidB->int64(u8"uuid"); uuid) {
-          auto uuidJ = ConvertEntityId(*uuid, ctx);
-          java->push_back(uuidJ.toIntArrayTag());
-        }
-      }
-    }
-    return java;
-  }
-
   static CompoundTagPtr TrialSpawnerReplaceConfigLootTables(CompoundTagPtr bedrock) {
     auto java = bedrock->copy();
     if (auto dropB = bedrock->string(u8"items_to_drop_when_ominous"); dropB) {
@@ -1032,15 +1000,9 @@ public:
     }
     return java;
   }
+#pragma endregion
 
-  static Uuid ConvertEntityId(long bedrock, Context const &ctx) {
-    if (auto mapped = ctx.mapLocalPlayerId(bedrock); mapped) {
-      return *mapped;
-    } else {
-      return Uuid::GenWithI64Seed(bedrock);
-    }
-  }
-
+#pragma region Converters: V
   static std::optional<Result> Vault(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
     auto t = EmptyShortName(u8"vault", pos);
 
@@ -1112,18 +1074,6 @@ public:
     r.fTileEntity = t;
     return r;
   }
-
-  static std::optional<Result> CreakingHeart(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
-    Result r;
-    auto t = EmptyShortName(u8"creaking_heart", pos);
-    r.fTileEntity = t;
-    if (auto idB = tagB.int64(u8"SpawnedCreakingID"); idB) {
-      auto id = ConvertEntityId(*idB, ctx);
-      auto idJ = id.toIntArrayTag();
-      t->set(u8"creaking", idJ);
-    }
-    return r;
-  }
 #pragma endregion
 
 #pragma region Converter generators
@@ -1146,6 +1096,59 @@ public:
     return [id](Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
       Result r;
       r.fTileEntity = EmptyShortName(id, pos);
+      return r;
+    };
+  }
+
+  static Converter Sign(std::u8string id) {
+    return [id](Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tag, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) -> std::optional<Result> {
+      using namespace std;
+      auto te = EmptyShortName(id, pos);
+
+      auto frontTextB = tag.compoundTag(u8"FrontText");
+      auto backTextB = tag.compoundTag(u8"BackText");
+      if (frontTextB || backTextB) {
+        if (frontTextB) {
+          auto frontTextJ = SignText(*frontTextB, opt.fOutputDataVersion);
+          te->set(u8"front_text", frontTextJ);
+        } else {
+          te->set(u8"front_text", SignTextEmpty());
+        }
+        if (backTextB) {
+          auto backTextJ = SignText(*backTextB, opt.fOutputDataVersion);
+          te->set(u8"back_text", backTextJ);
+        } else {
+          te->set(u8"back_text", SignTextEmpty());
+        }
+      } else {
+        auto frontTextJ = Compound();
+        CopyBoolValues(tag, *frontTextJ, {{u8"IgnoreLighting", u8"GlowingText", false}});
+        auto color = tag.int32(u8"SignTextColor");
+        if (color) {
+          Rgba rgba = Rgba::FromRGB(*color);
+          ColorCodeJava jcc = SignColor::MostSimilarColor(rgba);
+          frontTextJ->set(u8"Color", JavaNameFromColorCodeJava(jcc));
+        }
+        auto text = tag.string(u8"Text", u8"");
+        vector<u8string> lines = mcfile::String::Split(text, u8'\n');
+        auto messagesJ = List<Tag::Type::String>();
+        for (int i = 0; i < 4; i++) {
+          u8string key = u8"Text" + mcfile::String::ToString(i + 1);
+          u8string line = i < lines.size() ? lines[i] : u8"";
+          props::Json json;
+          props::SetJsonString(json, u8"text", line);
+          messagesJ->push_back(String(props::StringFromJson(json)));
+        }
+        frontTextJ->set(u8"messages", messagesJ);
+
+        te->set(u8"front_text", frontTextJ);
+        te->set(u8"back_text", SignTextEmpty());
+      }
+
+      CopyBoolValues(tag, *te, {{u8"IsWaxed", u8"is_waxed"}});
+
+      Result r;
+      r.fTileEntity = te;
       return r;
     };
   }
@@ -1218,6 +1221,27 @@ public:
       ret->push_back(converted);
     }
     return ret;
+  }
+
+  static Uuid ConvertEntityId(long bedrock, Context const &ctx) {
+    if (auto mapped = ctx.mapLocalPlayerId(bedrock); mapped) {
+      return *mapped;
+    } else {
+      return Uuid::GenWithI64Seed(bedrock);
+    }
+  }
+
+  static ListTagPtr ConvertUuidList(ListTag const &bedrock, Context const &ctx) {
+    auto java = List<Tag::Type::IntArray>();
+    for (auto const &it : bedrock) {
+      if (auto uuidB = it->asCompound(); uuidB) {
+        if (auto uuid = uuidB->int64(u8"uuid"); uuid) {
+          auto uuidJ = ConvertEntityId(*uuid, ctx);
+          java->push_back(uuidJ.toIntArrayTag());
+        }
+      }
+    }
+    return java;
   }
 
   static CompoundTagPtr EmptyFullName(std::u8string const &id, Pos3i const &pos) {
