@@ -316,6 +316,7 @@ public:
       // allowFireTicksAwayFromPlayer
       // announceAdvancements
       S(commandBlockOutput, ret.fCommandBlockOutput);
+      S(commandBlocksEnabled‌, ret.fCommandblocksEnabled);
       // disableElytraMovementCheck
       // disableRaids
       S(doDaylightCycle, ret.fDoDaylightCycle);
@@ -351,6 +352,7 @@ public:
       // NOTE: showcoordinates and reducedDebugInfo are not identical, but converting here for player convenience
       ret.fShowCoordinates = gameRules->string(u8"reducedDebugInfo", u8"false") != u8"true";
       S(projectilesCanBreakBlocks, ret.fProjectilescanbreakblocks);
+      S(pvp, ret.fPvp);
       S(tntExplodes, ret.fTntExplodes);
       S(tntexplosiondropdecay, ret.fTntExplosionDropDecay);
 #undef S

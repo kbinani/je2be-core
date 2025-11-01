@@ -20,6 +20,7 @@ public:
 #define I(__nameJ, __nameB, __default) j[u8"" #__nameJ] = String(mcfile::String::ToString(b.int32(u8"" #__nameB, __default)));
       // announceAdvancements
       B(commandBlockOutput, commandblockoutput, true);
+      B(commandBlocksEnabled, commandblocksenabled, true);
       // disableElytraMovementCheck
       // disablePlayerMovementCheck
       // disableRaids
@@ -60,6 +61,7 @@ public:
       // universalAnger
       I(playersSleepingPercentage, playerssleepingpercentage, 100);
       B(projectilesCanBreakBlocks, projectilescanbreakblocks, true);
+      B(pvp, pvp, true);
       B(tntExplodes, tntexplodes, true);
       B(tntExplosionDropDecay, tntexplosiondropdecay, false);
 #undef B
@@ -78,6 +80,9 @@ public:
       ret->set(u8"enderPearlsVanishOnDeath", u8"true");
       ret->set(u8"disablePlayerMovementCheck", u8"false");
       ret->set(u8"allowFireTicksAwayFromPlayer", u8"false");
+      ret->set(u8"allowEnteringNetherUsingPortals", u8"true");
+      ret->set(u8"spawnMonsters", u8"true");
+      ret->set(u8"spawnerBlocksEnabled", u8"true");
 
       return ret;
     }
