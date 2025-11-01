@@ -279,42 +279,49 @@ public:
     entity->set(u8"PlayerGameMode", Int(BedrockFromGameMode(gameType)));
     entity->set(u8"SelectedContainerId", Int(0));
 
+    ListTagPtr armorB = entity->listTag(u8"Armor");
+    if (!armorB) {
+      armorB = List<Tag::Type::Compound>();
+      entity->set(u8"Armor", armorB);
+    }
+    while (armorB->size() < 5) {
+      armorB->push_back(Item::Empty());
+    }
+
     auto inventory = j.listTag(u8"Inventory");
     if (inventory) {
       auto outInventory = ConvertAnyItemList(inventory, 36, ctx, dataVersion);
       entity->set(u8"Inventory", outInventory);
 
       // Armor
-      auto armor = InitItemList(4);
       auto boots = ItemAtSlot(*inventory, 100);
       if (boots) {
         auto outBoots = Item::From(boots, ctx, dataVersion);
         if (outBoots) {
-          armor->at(3) = outBoots;
+          armorB->at(3) = outBoots;
         }
       }
       auto leggings = ItemAtSlot(*inventory, 101);
       if (leggings) {
         auto outLeggings = Item::From(leggings, ctx, dataVersion);
         if (outLeggings) {
-          armor->at(2) = outLeggings;
+          armorB->at(2) = outLeggings;
         }
       }
       auto chestplate = ItemAtSlot(*inventory, 102);
       if (chestplate) {
         auto outChestplate = Item::From(chestplate, ctx, dataVersion);
         if (outChestplate) {
-          armor->at(1) = outChestplate;
+          armorB->at(1) = outChestplate;
         }
       }
       auto helmet = ItemAtSlot(*inventory, 103);
       if (helmet) {
         auto outHelmet = Item::From(helmet, ctx, dataVersion);
         if (outHelmet) {
-          armor->at(0) = outHelmet;
+          armorB->at(0) = outHelmet;
         }
       }
-      entity->set(u8"Armor", armor);
 
       // Offhand
       auto offhand = ItemAtSlot(*inventory, -106);

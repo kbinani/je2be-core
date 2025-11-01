@@ -2321,6 +2321,7 @@ public:
     CopyChestItems(b, u8"EnderChestInventory", j, u8"EnderItems", ctx, true, dataVersion);
     CopyChestItems(b, u8"Inventory", j, u8"Inventory", ctx, true, dataVersion);
     InjectArmorAndOffhand(b, j, ctx, dataVersion);
+    ArmorItems(b, j, ctx, dataVersion);
 
     CopyIntValues(b, j, {{u8"SelectedInventorySlot", u8"SelectedItemSlot"}, {u8"PlayerLevel", u8"XpLevel"}, {u8"EnchantmentSeed", u8"XpSeed"}});
     CopyShortValues(b, j, {{u8"SleepTimer"}});
