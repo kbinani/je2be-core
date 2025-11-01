@@ -66,6 +66,13 @@ class PoiBlocks {
     t[beehive] = {0, u8"minecraft:beehive"};
     t[bee_nest] = {0, u8"minecraft:bee_nest"};
     t[lightning_rod] = {0, u8"minecraft:lightning_rod"};
+    t[exposed_lightning_rod] = {0, u8"minecraft:lightning_rod"};
+    t[weathered_lightning_rod] = {0, u8"minecraft:lightning_rod"};
+    t[oxidized_lightning_rod] = {0, u8"minecraft:lightning_rod"};
+    t[waxed_lightning_rod] = {0, u8"minecraft:lightning_rod"};
+    t[waxed_exposed_lightning_rod] = {0, u8"minecraft:lightning_rod"};
+    t[waxed_weathered_lightning_rod] = {0, u8"minecraft:lightning_rod"};
+    t[waxed_oxidized_lightning_rod] = {0, u8"minecraft:lightning_rod"};
     t[lodestone] = {0, u8"minecraft:lodestone"};
     return ret;
   }
@@ -95,6 +102,13 @@ public:
     case beehive:
     case bee_nest:
     case lightning_rod:
+    case exposed_lightning_rod:
+    case weathered_lightning_rod:
+    case oxidized_lightning_rod:
+    case waxed_lightning_rod:
+    case waxed_exposed_lightning_rod:
+    case waxed_weathered_lightning_rod:
+    case waxed_oxidized_lightning_rod:
     case lodestone:
       return true;
     case white_bed:
