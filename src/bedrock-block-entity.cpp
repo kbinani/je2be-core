@@ -317,7 +317,11 @@ public:
       }
     }
     r.fBlock = blockJ.applying({{u8"type", type}});
-    auto te = EmptyFullName(block.fName, pos);
+    auto name = block.fName;
+    if (name.ends_with(u8"copper_chest")) {
+      name = u8"minecraft:chest";
+    }
+    auto te = EmptyFullName(name, pos);
     if (auto st = LootTable::BedrockToJava(tagB, *te); st == LootTable::State::NoLootTable && !r.fTakeItemsFrom) {
       auto items = ContainerItems(tagB, u8"Items", ctx, opt);
       if (items) {
