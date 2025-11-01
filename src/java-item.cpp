@@ -827,6 +827,16 @@ private:
     E(waxed_oxidized_copper_golem_statue, CopperGolemStatue);
     E(copper_nugget, DefaultItem);
     E(copper_golem_spawn_egg, DefaultItem);
+    E(copper_horse_armor, DefaultItem);
+    E(copper_boots, DefaultItem);
+    E(copper_leggings, DefaultItem);
+    E(copper_chestplate, DefaultItem);
+    E(copper_helmet, DefaultItem);
+    E(copper_sword, DefaultItem);
+    E(copper_pickaxe, DefaultItem);
+    E(copper_shovel, DefaultItem);
+    E(copper_axe, DefaultItem);
+    E(copper_hoe, DefaultItem);
 #undef E
     return table;
   }
