@@ -628,7 +628,9 @@ static void CheckBrainJ(CompoundTag const &brainE, CompoundTag const &brainA) {
       u8"memories/minecraft:danger_detected_recently",
       // happy_ghast
       u8"memories/minecraft:is_tempted",
-  };
+      // copper_golem
+      u8"memories/minecraft:visited_block_positions",
+      u8"memories/minecraft:unreachable_transport_block_positions"};
   auto copyE = brainE.copy();
   auto copyA = brainA.copy();
 

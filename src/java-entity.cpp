@@ -698,6 +698,8 @@ private:
     table->try_emplace(u8"bamboo_chest_raft", C(EntityBase, Vehicle(), ChestItemsFromItems, TypedBoat(u8"chest_boat", u8"bamboo")));
 
     E(happy_ghast, C(Monster, HappyGhast));
+
+    E(copper_golem, C(Mob, CopperGolem));
 #undef A
 #undef M
 #undef E
@@ -944,6 +946,43 @@ private:
       c[u8"entries"] = entries;
     }
   }
+
+  static void CopperGolem(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
+    AddDefinition(c, u8"+minecraft:copper_oxidizing");
+    AddProperty(c, u8"minecraft:is_becoming_statue", Bool(false));
+
+    auto nextWeatherAgeJ = tag.int64(u8"next_weather_age", -1);
+    if (nextWeatherAgeJ == 2) {
+      AddProperty(c, u8"minecraft:is_waxed", Bool(true));
+      AddDefinition(c, u8"-minecraft:copper_oxidizing");
+      AddDefinition(c, u8"-minecraft:becoming_statue");
+    } else {
+      AddProperty(c, u8"minecraft:is_waxed", Bool(false));
+      if (nextWeatherAgeJ >= 0) {
+        c[u8"TimeStamp"] = Long(nextWeatherAgeJ);
+      }
+    }
+
+    auto weatherStateJ = tag.string(u8"weather_state", u8"unaffected");
+    if (weatherStateJ == u8"exposed" || weatherStateJ == u8"weathered" || weatherStateJ == u8"oxidized") {
+      AddProperty(c, u8"minecraft:oxidation_level", String(weatherStateJ));
+    } else {
+      AddProperty(c, u8"minecraft:oxidation_level", String(u8"unoxidized"));
+    }
+
+    bool hasFlower = false;
+    if (auto equipment = tag.compoundTag(u8"equipment"); equipment) {
+      if (auto head = equipment->compoundTag(u8"saddle"); head) {
+        auto id = head->string(u8"id");
+        auto count = head->int32(u8"count", 0);
+        if (id == u8"minecraft:poppy" && count > 0) {
+          hasFlower = true;
+        }
+      }
+    }
+    AddProperty(c, u8"minecraft:has_flower", Bool(hasFlower));
+  }
+
   static void Creaking(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     AddDefinition(c, u8"+minecraft:neutral");
     AddDefinition(c, u8"+minecraft:mobile");

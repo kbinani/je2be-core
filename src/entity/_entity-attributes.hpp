@@ -400,6 +400,16 @@ private:
                                                       Attribute(32, 32, 2048), // follow_range
                                                       nullopt)));              // attack_damage
 
+    // 1.21.9
+    table->insert(make_pair(u8"minecraft:copper_golem", Attributes(
+                                                            Attribute(12, 12, 12),   // health(base, current, max)
+                                                            Attribute(0, 0, 1),      // knockback_resistance
+                                                            Attribute(0.2, 0.2),     // movement
+                                                            Attribute(0.02, 0.02),   // underwater_movement
+                                                            Attribute(0.02, 0.02),   // lava_movement
+                                                            Attribute(16, 16, 2048), // follow_range
+                                                            Attribute(2, 2, 2))));   // attack_damage
+
     return table;
   }
 };

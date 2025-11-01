@@ -460,6 +460,29 @@ public:
     j[u8"IsChickenJockey"] = Bool(false);
   }
 
+  static void CopperGolem(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    auto timeStampB = b.int64(u8"TimeStamp");
+    if (timeStampB) {
+      j[u8"next_weather_age"] = Long(*timeStampB);
+    } else {
+      j[u8"next_weather_age"] = Long(-2);
+    }
+    if (auto oxidationLevelB = GetProperty<StringTag>(b, u8"minecraft:oxidation_level"); oxidationLevelB && (oxidationLevelB->fValue == u8"exposed" || oxidationLevelB->fValue == u8"weathered" || oxidationLevelB->fValue == u8"oxidized")) {
+      j[u8"weather_state"] = String(oxidationLevelB->fValue);
+    } else {
+      j[u8"weather_state"] = String(u8"unaffected");
+    }
+    if (auto properties = b.compoundTag(u8"properties"); properties) {
+      if (properties->boolean(u8"minecraft:has_flower", false)) {
+        auto poppy = Compound();
+        poppy->set(u8"id", String(u8"minecraft:poppy"));
+        poppy->set(u8"count", Int(1));
+        AddEquipment(j, u8"saddle", poppy);
+        AddDropChance(j, u8"saddle", 2.0f);
+      }
+    }
+  }
+
   static void Creaking(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"Health"] = Float(1);
   }
@@ -1895,7 +1918,6 @@ public:
     InLove(b, j, ctx, dataVersion);
     Owner(b, j, ctx, dataVersion);
     PersistenceRequiredAnimal(b, j, ctx, dataVersion);
-    SlotDropChances(b, j, ctx, dataVersion);
     return ret;
   }
 
@@ -1910,6 +1932,7 @@ public:
     FallDistance(b, j, ctx, dataVersion);
     Fire(b, j, ctx, dataVersion);
     Invulnerable(b, j, ctx, dataVersion);
+    SlotDropChances(b, j, ctx, dataVersion);
     return ret;
   }
 
@@ -2556,6 +2579,7 @@ public:
     E(creaking, C(Same, LivingEntity, Creaking));
 
     E(happy_ghast, C(Same, LivingEntity, Age, InLove, HappyGhast));
+    E(copper_golem, C(Same, LivingEntity, CopperGolem));
 #undef E
     return ret;
   }
