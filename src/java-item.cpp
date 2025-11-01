@@ -819,281 +819,51 @@ private:
     return table;
   }
 
-  static CompoundTagPtr Bundle(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
-    auto ret = New(name, true);
-    auto contentsB = List<Tag::Type::Compound>();
-    int weight = 4;
-    uint8_t slot = 0;
-    if (auto contentsJ = item.query(u8"components/minecraft:bundle_contents")->asList(); contentsJ) {
-      for (auto it : *contentsJ) {
-        if (auto itemJ = std::dynamic_pointer_cast<CompoundTag>(it); itemJ) {
-          if (auto itemB = Item::From(itemJ, ctx, dataVersion); itemB) {
-            itemB->set(u8"Slot", Byte(slot));
-            slot++;
-            weight += itemB->byte(u8"Count", 0);
-            contentsB->push_back(itemB);
-          }
-        }
-      }
-    }
-    for (; slot < 64; slot++) {
-      auto itemB = Empty();
-      itemB->set(u8"Slot", Byte(slot));
-      contentsB->push_back(itemB);
-    }
-    AppendTag(*ret, u8"bundle_weight", Int(weight));
-    AppendTag(*ret, u8"storage_item_component_content", contentsB);
-    return ret;
-  }
-
   static std::unordered_map<std::u8string, Converter> const &ItemConverterTable() {
     using namespace std;
     static unique_ptr<unordered_map<u8string, Converter> const> sTable(CreateItemConverterTable());
     return *sTable;
   }
 
-  static CompoundTagPtr ChiseledBookshelf(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
-    auto ret = New(name, true);
-    if (auto itemsJ = GetItems(item, ctx, dataVersion); itemsJ) {
-      auto itemsB = List<Tag::Type::Compound>();
-      for (int i = 0; i < 6; i++) {
-        itemsB->push_back(Empty());
+#pragma region Converters: A
+  static CompoundTagPtr AnyPotion(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
+    std::u8string itemName = name;
+    std::optional<i16> type;
+    if (auto potionContents = FallbackQuery(item, {u8"components/minecraft:potion_contents", u8"tag"})->asCompound(); potionContents) {
+      if (auto potion = FallbackValue<std::u8string>(*potionContents, {u8"potion", u8"Potion"}); potion) {
+        type = Potion::BedrockPotionTypeFromJava(*potion);
       }
-      for (auto const &it : *itemsJ) {
-        if (auto c = std::dynamic_pointer_cast<CompoundTag>(it); c) {
-          if (auto slot = c->byte(u8"Slot"); slot) {
-            if (0 <= *slot && *slot <= 5) {
-              c->erase(u8"Slot");
-              itemsB->fValue[*slot] = c;
-            }
-          }
+    }
+    if (!type) {
+      if (auto damage = item.int16(u8"Damage"); damage) {
+        if (auto ret = Potion::JavaPotionTypeAndItemNameFromLegacyJavaDamage(*damage); ret) {
+          itemName = ret->fItemName;
+          type = Potion::BedrockPotionTypeFromJava(ret->fPotionType);
         }
       }
-      AppendTag(*ret, u8"Items", itemsB);
     }
-    if (auto block = Block::FromName(name, dataVersion.fTarget); block) {
-      if (auto blockData = BlockData::From(block, nullptr, dataVersion, {.fItem = true}); blockData) {
-        ret->set(u8"Block", blockData);
-      }
+    if (!type) {
+      type = 0;
     }
-    return ret;
+    auto tag = New(itemName, true);
+    tag->set(u8"Damage", Short(*type));
+    return tag;
   }
 
-  static CompoundTagPtr UnfindableBlockContainer(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
-    auto ret = New(name, true);
-    ContainerItems(item, *ret, ctx, dataVersion);
-    if (auto block = Block::FromName(name, dataVersion.fTarget); block) {
-      if (auto blockData = BlockData::From(block, nullptr, dataVersion, {.fItem = true}); blockData) {
-        ret->set(u8"Block", blockData);
-      }
-    }
-    if (ret->query(u8"tag/Items")->asList()) {
-      AppendTag(*ret, u8"Findable", Bool(false));
-    }
-    return ret;
-  }
+  static CompoundTagPtr AnyTorch(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
+    using namespace std;
 
-  static CompoundTagPtr DecoratedPot(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
-    auto ret = New(name, true);
-    if (auto items = GetItems(item, ctx, dataVersion); items) {
-      for (auto const &it : *items) {
-        auto c = std::dynamic_pointer_cast<CompoundTag>(it);
-        if (!c) {
-          continue;
-        }
-        auto slot = c->byte(u8"Slot");
-        if (!slot) {
-          continue;
-        }
-        c->erase(u8"Slot");
-        if (*slot == 0) {
-          AppendTag(*ret, u8"item", c);
-          AppendTag(*ret, u8"animation", Bool(false));
-        }
-      }
-    }
-    if (auto block = Block::FromName(name, dataVersion.fTarget); block) {
-      if (auto blockData = BlockData::From(block, nullptr, dataVersion, {.fItem = true}); blockData) {
-        ret->set(u8"Block", blockData);
-      }
-    }
-    return ret;
-  }
+    auto block = Block::FromName(name, dataVersion.fTarget);
+    auto blockData = BlockData::From(block, nullptr, dataVersion, {.fItem = true});
 
-  static CompoundTagPtr BrewingStand(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
-    u8 const mapping[5] = {1, 2, 3, 0, 4};
-    auto ret = New(name, true);
-    auto tagB = Compound();
-    if (auto items = GetItems(item, ctx, dataVersion); items) {
-      auto itemsB = List<Tag::Type::Compound>();
-      for (auto const &it : *items) {
-        auto c = std::dynamic_pointer_cast<CompoundTag>(it);
-        if (!c) {
-          continue;
-        }
-        auto slot = c->byte(u8"Slot");
-        if (!slot) {
-          continue;
-        }
-        if (0 <= *slot && *slot <= 4) {
-          auto i = mapping[*slot];
-          c->set(u8"Slot", Byte(i));
-          itemsB->push_back(c);
-        }
-      }
-      tagB->set(u8"Items", itemsB);
-    }
-    if (auto blockEntityDataJ = Migrate<CompoundTag>(item, u8"block_entity_data", Depth::Tag, u8"BlockEntityTag"); blockEntityDataJ) {
-      CopyShortValues(*blockEntityDataJ, *tagB, {{u8"BrewTime", u8"CookTime"}});
-      if (auto fuelJ = blockEntityDataJ->byte(u8"Fuel"); fuelJ) {
-        tagB->set(u8"FuelAmount", Short(*fuelJ));
-        tagB->set(u8"FuelTotal", Short(20));
-      }
-    }
-    if (!tagB->empty()) {
-      ret->set(u8"tag", tagB);
-    }
-    return ret;
-  }
+    auto states = Compound();
+    states->set(u8"torch_facing_direction", u8"unknown");
+    blockData->set(u8"states", states);
 
-  static CompoundTagPtr SimpleContainer(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
-    auto ret = New(name, true);
-    ContainerItems(item, *ret, ctx, dataVersion);
-    return ret;
-  }
-
-  static CompoundTagPtr BlockContainer(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
-    auto ret = New(name, true);
-    ContainerItems(item, *ret, ctx, dataVersion);
-    if (auto block = Block::FromName(name, dataVersion.fTarget); block) {
-      if (auto blockData = BlockData::From(block, nullptr, dataVersion, {.fItem = true}); blockData) {
-        ret->set(u8"Block", blockData);
-      }
-    }
-    return ret;
-  }
-
-  static CompoundTagPtr Campfire(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
-    auto ret = New(name, true);
-    auto tagB = Compound();
-    if (auto items = GetItems(item, ctx, dataVersion); items) {
-      for (auto const &it : *items) {
-        auto c = std::dynamic_pointer_cast<CompoundTag>(it);
-        if (!c) {
-          continue;
-        }
-        auto slot = c->byte(u8"Slot");
-        if (!slot) {
-          continue;
-        }
-        if (0 <= *slot && *slot <= 3) {
-          c->erase(u8"Slot");
-          tagB->set(u8"Item" + mcfile::String::ToString(*slot + 1), c);
-        }
-      }
-    }
-    if (auto cookingTimes = FallbackQuery(item, {u8"components/minecraft:block_entity_data/CookingTimes", u8"tag/BlockEntityTag/CookingTimes"})->asIntArray(); cookingTimes) {
-      for (int i = 0; i < 4 && i < cookingTimes->fValue.size(); i++) {
-        tagB->set(u8"ItemTime" + mcfile::String::ToString(i + 1), Int(cookingTimes->fValue[i]));
-      }
-    }
-    if (!tagB->empty()) {
-      ret->set(u8"tag", tagB);
-    }
-    return ret;
-  }
-
-  static CompoundTagPtr ShulkerBox(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
-    auto n = Namespace::Remove(name);
-    if (n == u8"shulker_box") {
-      n = u8"undyed_shulker_box";
-    }
-    auto ret = New(n);
-
-    if (auto block = Block::FromName(name, dataVersion.fTarget); block) {
-      if (auto blockData = BlockData::From(block, nullptr, dataVersion, {.fItem = true}); blockData) {
-        ret->set(u8"Block", blockData);
-      }
-    }
-
-    if (auto container = item.query(u8"components/minecraft:container")->asList(); container) {
-      auto itemsB = List<Tag::Type::Compound>();
-      for (auto const &it : *container) {
-        if (auto c = std::dynamic_pointer_cast<CompoundTag>(it); c) {
-          if (auto itemJ = c->compoundTag(u8"item"); itemJ) {
-            if (auto slotJ = c->int32(u8"slot"); slotJ) {
-              if (auto itemB = Item::From(itemJ, ctx, dataVersion); itemB) {
-                itemB->set(u8"Slot", Byte(*slotJ));
-                itemsB->push_back(itemB);
-              }
-            }
-          }
-        }
-      }
-      auto tagB = Compound();
-      tagB->set(u8"Items", itemsB);
-      ret->set(u8"tag", tagB);
-    } else if (auto itemsJ = item.query(u8"tag/BlockEntityTag/Items")->asList(); itemsJ) {
-      auto itemsB = List<Tag::Type::Compound>();
-      for (auto const &it : *itemsJ) {
-        if (auto c = std::dynamic_pointer_cast<CompoundTag>(it); c) {
-          if (auto slotJ = c->byte(u8"Slot"); slotJ) {
-            if (auto itemB = Item::From(c, ctx, dataVersion); itemB) {
-              itemB->set(u8"Slot", Byte(*slotJ));
-              itemsB->push_back(itemB);
-            }
-          }
-        }
-      }
-      auto tagB = Compound();
-      tagB->set(u8"Items", itemsB);
-      ret->set(u8"tag", tagB);
-    }
-    return ret;
-  }
-
-  static CompoundTagPtr Compass(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
-    struct Info {
-      Info(Pos3i pos, mcfile::Dimension d) : fPos(pos), fDimension(d) {}
-      Pos3i fPos;
-      mcfile::Dimension fDimension;
-    };
-    std::optional<Info> info;
-    if (auto target = item.query(u8"components/minecraft:lodestone_tracker/target")->asCompound(); target) {
-      auto pos = props::GetPos3iFromIntArrayTag(*target, u8"pos");
-      if (auto dimension = target->string(u8"dimension"); dimension) {
-        if (auto d = DimensionFromJavaString(*dimension); d && pos) {
-          info = Info(*pos, *d);
-        }
-      }
-    } else if (auto tag = item.compoundTag(u8"tag"); tag) {
-      auto pos = props::GetPos3i(*tag, u8"LodestonePos");
-      if (auto dimension = tag->string(u8"LodestoneDimension"); dimension) {
-        if (auto d = DimensionFromJavaString(*dimension); d && pos) {
-          info = Info(*pos, *d);
-        }
-      }
-    }
-    if (info) {
-      auto ret = New(u8"lodestone_compass");
-      i32 tracker = ctx.fLodestones->get(info->fDimension, info->fPos);
-      auto tagB = Compound();
-      tagB->set(u8"trackingHandle", Int(tracker));
-      ret->set(u8"tag", tagB);
-      return ret;
-    } else {
-      return New(u8"compass");
-    }
-  }
-
-  static CompoundTagPtr Sign(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
-    auto ret = DefaultBlockItem(name, item, ctx, dataVersion);
-    if (!ret) {
-      return nullptr;
-    }
-    ret->set(u8"Name", name);
-    ret->erase(u8"Block");
-    return ret;
+    auto tag = New(name, true);
+    tag->set(u8"Damage", Short(0));
+    tag->set(u8"Block", blockData);
+    return tag;
   }
 
   static CompoundTagPtr AxolotlBucket(std::u8string const &name, CompoundTag const &j, Context const &, DataVersion const &dataVersion) {
@@ -1123,67 +893,93 @@ private:
     }
     return b;
   }
+#pragma endregion
 
-  static CompoundTagPtr TropicalFishBucket(std::u8string const &name, CompoundTag const &item, Context const &ctx, DataVersion const &dataVersion) {
-    auto ret = New(u8"tropical_fish_bucket");
-    ret->set(u8"Damage", Short(0));
-    auto baseColor = GetComponent<StringTag>(item, u8"tropical_fish/base_color");
-    auto pattern = GetComponent<StringTag>(item, u8"tropical_fish/pattern");
-    auto patternColor = GetComponent<StringTag>(item, u8"tropical_fish/pattern_color");
-    if (auto data = FallbackQuery(item, {u8"components/minecraft:bucket_entity_data", u8"tag"})->asCompound(); data) {
-      auto health = data->float32(u8"Health");
-      if (baseColor && pattern && patternColor) {
-        TropicalFish::JavaComponents jc;
-        jc.fBaseColor = baseColor->fValue;
-        jc.fPattern = pattern->fValue;
-        jc.fPatternColor = patternColor->fValue;
-        auto tf = TropicalFish::FromJavaComponents(jc);
-        auto tag = tf.toBedrockBucketTag(ctx.fUuids->randomEntityId(), health);
-        ret->set(u8"tag", tag);
-      } else if (auto variant = data->int32(u8"BucketVariantTag"); variant) {
-        auto tf = TropicalFish::FromJavaVariant(*variant);
-        auto tag = tf.toBedrockBucketTag(ctx.fUuids->randomEntityId(), health);
-        ret->set(u8"tag", tag);
+#pragma region Converters: B
+  static CompoundTagPtr Banner(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
+    auto colorName = strings::RemovePrefixAndSuffix(u8"minecraft:", name, u8"_banner");
+    BannerColorCodeBedrock color = BannerColorCodeFromName(colorName);
+    i16 damage = (i16)color;
+    auto ret = New(u8"banner");
+    ret->set(u8"Damage", Short(damage));
+
+    bool ominous = false;
+    if (auto itemName = Migrate<StringTag>(item, u8"item_name", Depth::Display, u8"Name"); itemName) {
+      auto json = props::ParseAsJson(itemName->fValue);
+      if (json) {
+        auto translate = json->find("translate");
+        if (translate != json->end() && translate->is_string() && props::GetJsonStringValue(*translate) == u8"block.minecraft.ominous_banner") {
+          ominous = true;
+        }
+      }
+    } else if (auto itemName = GetComponent<CompoundTag>(item, u8"item_name"); itemName) {
+      if (auto translate = itemName->string(u8"translate"); translate == u8"block.minecraft.ominous_banner") {
+        ominous = true;
       }
     }
+
+    auto patterns = Migrate<ListTag>(item, u8"banner_patterns", Depth::BlockEntityTag, u8"Patterns");
+
+    auto tag = Compound();
+    if (ominous) {
+      tag->set(u8"Type", Int(1));
+      ret->set(u8"tag", tag);
+    } else if (patterns) {
+      auto bePatterns = List<Tag::Type::Compound>();
+      for (auto const &it : *patterns) {
+        auto c = it->asCompound();
+        if (!c) {
+          continue;
+        }
+        ColorCodeJava patternColor;
+        if (auto patternColorString = c->string(u8"color"); patternColorString) {
+          patternColor = ColorCodeJavaFromJavaName(*patternColorString);
+        } else if (auto patternColorInt = c->int32(u8"Color"); patternColorInt) {
+          patternColor = static_cast<ColorCodeJava>(*patternColorInt);
+        } else {
+          continue;
+        }
+        auto patternJ = FallbackPtr<StringTag>(*c, {u8"pattern", u8"Pattern"});
+        if (!patternJ) {
+          continue;
+        }
+        auto patternB = Banner::BedrockOrLegacyJavaPatternFromJava(patternJ->fValue);
+        auto ptag = Compound();
+        ptag->insert({
+            {u8"Color", Int(static_cast<i32>(BannerColorCodeFromJava(patternColor)))},
+            {u8"Pattern", String(Wrap(patternB, patternJ->fValue))},
+        });
+        bePatterns->push_back(ptag);
+      }
+      tag->set(u8"Patterns", bePatterns);
+      tag->set(u8"Type", Int(0));
+    } else {
+      tag->set(u8"Type", Int(0));
+    }
+    ret->set(u8"tag", tag);
+
     return ret;
   }
 
-  static Converter FishBucket(std::u8string const &type) {
-    return [=](std::u8string const &name, CompoundTag const &item, Context const &ctx, DataVersion const &dataVersion) {
-      auto ret = New(type + u8"_bucket");
-      ret->set(u8"Damage", Short(0));
-      if (auto data = FallbackQuery(item, {u8"components/minecraft:bucket_entity_data", u8"tag"})->asCompound(); data) {
-        Entity::Rep rep(ctx.fUuids->randomEntityId());
-        rep.fDefinitions.push_back(u8"+minecraft:" + type);
-        rep.fDefinitions.push_back(u8"+");
-        if (type == u8"salmon") {
-          StringTagPtr size = GetComponent<StringTag>(item, u8"salmon/size");
-          if (!size) {
-            size = data->stringTag(u8"type");
-          }
-          if (size && size->fValue == u8"small") {
-            rep.fDefinitions.push_back(u8"+scale_small");
-          } else if (size && size->fValue == u8"large") {
-            rep.fDefinitions.push_back(u8"+scale_large");
-          } else {
-            // "medium" or nullopt
-            rep.fDefinitions.push_back(u8"+scale_normal");
-          }
-        }
-        auto tagB = rep.toCompoundTag();
-        auto health = data->float32(u8"Health");
-        auto attributes = EntityAttributes::Mob(Namespace::Add(type), health);
-        if (attributes) {
-          tagB->set(u8"Attributes", attributes->toBedrockListTag());
-        }
-        if (auto age = data->int32(u8"Age"); age) {
-          tagB->set(u8"Age", Int(*age));
-        }
-        ret->set(u8"tag", tagB);
+  static CompoundTagPtr Bed(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
+    using namespace std;
+    u8string colorName = strings::RemovePrefixAndSuffix(u8"minecraft:", name, u8"_bed");
+    ColorCodeJava color = ColorCodeJavaFromJavaName(colorName);
+    i16 damage = (i16)color;
+    auto tag = New(u8"bed");
+    tag->set(u8"Damage", Short(damage));
+    return tag;
+  }
+
+  static CompoundTagPtr BlockContainer(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
+    auto ret = New(name, true);
+    ContainerItems(item, *ret, ctx, dataVersion);
+    if (auto block = Block::FromName(name, dataVersion.fTarget); block) {
+      if (auto blockData = BlockData::From(block, nullptr, dataVersion, {.fItem = true}); blockData) {
+        ret->set(u8"Block", blockData);
       }
-      return ret;
-    };
+    }
+    return ret;
   }
 
   static CompoundTagPtr BooksAndQuill(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
@@ -1271,6 +1067,265 @@ private:
     return tag;
   }
 
+  static CompoundTagPtr BrewingStand(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
+    u8 const mapping[5] = {1, 2, 3, 0, 4};
+    auto ret = New(name, true);
+    auto tagB = Compound();
+    if (auto items = GetItems(item, ctx, dataVersion); items) {
+      auto itemsB = List<Tag::Type::Compound>();
+      for (auto const &it : *items) {
+        auto c = std::dynamic_pointer_cast<CompoundTag>(it);
+        if (!c) {
+          continue;
+        }
+        auto slot = c->byte(u8"Slot");
+        if (!slot) {
+          continue;
+        }
+        if (0 <= *slot && *slot <= 4) {
+          auto i = mapping[*slot];
+          c->set(u8"Slot", Byte(i));
+          itemsB->push_back(c);
+        }
+      }
+      tagB->set(u8"Items", itemsB);
+    }
+    if (auto blockEntityDataJ = Migrate<CompoundTag>(item, u8"block_entity_data", Depth::Tag, u8"BlockEntityTag"); blockEntityDataJ) {
+      CopyShortValues(*blockEntityDataJ, *tagB, {{u8"BrewTime", u8"CookTime"}});
+      if (auto fuelJ = blockEntityDataJ->byte(u8"Fuel"); fuelJ) {
+        tagB->set(u8"FuelAmount", Short(*fuelJ));
+        tagB->set(u8"FuelTotal", Short(20));
+      }
+    }
+    if (!tagB->empty()) {
+      ret->set(u8"tag", tagB);
+    }
+    return ret;
+  }
+
+  static CompoundTagPtr Bundle(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
+    auto ret = New(name, true);
+    auto contentsB = List<Tag::Type::Compound>();
+    int weight = 4;
+    uint8_t slot = 0;
+    if (auto contentsJ = item.query(u8"components/minecraft:bundle_contents")->asList(); contentsJ) {
+      for (auto it : *contentsJ) {
+        if (auto itemJ = std::dynamic_pointer_cast<CompoundTag>(it); itemJ) {
+          if (auto itemB = Item::From(itemJ, ctx, dataVersion); itemB) {
+            itemB->set(u8"Slot", Byte(slot));
+            slot++;
+            weight += itemB->byte(u8"Count", 0);
+            contentsB->push_back(itemB);
+          }
+        }
+      }
+    }
+    for (; slot < 64; slot++) {
+      auto itemB = Empty();
+      itemB->set(u8"Slot", Byte(slot));
+      contentsB->push_back(itemB);
+    }
+    AppendTag(*ret, u8"bundle_weight", Int(weight));
+    AppendTag(*ret, u8"storage_item_component_content", contentsB);
+    return ret;
+  }
+#pragma endregion
+
+#pragma region Converters: C
+  static CompoundTagPtr Campfire(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
+    auto ret = New(name, true);
+    auto tagB = Compound();
+    if (auto items = GetItems(item, ctx, dataVersion); items) {
+      for (auto const &it : *items) {
+        auto c = std::dynamic_pointer_cast<CompoundTag>(it);
+        if (!c) {
+          continue;
+        }
+        auto slot = c->byte(u8"Slot");
+        if (!slot) {
+          continue;
+        }
+        if (0 <= *slot && *slot <= 3) {
+          c->erase(u8"Slot");
+          tagB->set(u8"Item" + mcfile::String::ToString(*slot + 1), c);
+        }
+      }
+    }
+    if (auto cookingTimes = FallbackQuery(item, {u8"components/minecraft:block_entity_data/CookingTimes", u8"tag/BlockEntityTag/CookingTimes"})->asIntArray(); cookingTimes) {
+      for (int i = 0; i < 4 && i < cookingTimes->fValue.size(); i++) {
+        tagB->set(u8"ItemTime" + mcfile::String::ToString(i + 1), Int(cookingTimes->fValue[i]));
+      }
+    }
+    if (!tagB->empty()) {
+      ret->set(u8"tag", tagB);
+    }
+    return ret;
+  }
+
+  static CompoundTagPtr ChiseledBookshelf(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
+    auto ret = New(name, true);
+    if (auto itemsJ = GetItems(item, ctx, dataVersion); itemsJ) {
+      auto itemsB = List<Tag::Type::Compound>();
+      for (int i = 0; i < 6; i++) {
+        itemsB->push_back(Empty());
+      }
+      for (auto const &it : *itemsJ) {
+        if (auto c = std::dynamic_pointer_cast<CompoundTag>(it); c) {
+          if (auto slot = c->byte(u8"Slot"); slot) {
+            if (0 <= *slot && *slot <= 5) {
+              c->erase(u8"Slot");
+              itemsB->fValue[*slot] = c;
+            }
+          }
+        }
+      }
+      AppendTag(*ret, u8"Items", itemsB);
+    }
+    if (auto block = Block::FromName(name, dataVersion.fTarget); block) {
+      if (auto blockData = BlockData::From(block, nullptr, dataVersion, {.fItem = true}); blockData) {
+        ret->set(u8"Block", blockData);
+      }
+    }
+    return ret;
+  }
+
+  static CompoundTagPtr Compass(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
+    struct Info {
+      Info(Pos3i pos, mcfile::Dimension d) : fPos(pos), fDimension(d) {}
+      Pos3i fPos;
+      mcfile::Dimension fDimension;
+    };
+    std::optional<Info> info;
+    if (auto target = item.query(u8"components/minecraft:lodestone_tracker/target")->asCompound(); target) {
+      auto pos = props::GetPos3iFromIntArrayTag(*target, u8"pos");
+      if (auto dimension = target->string(u8"dimension"); dimension) {
+        if (auto d = DimensionFromJavaString(*dimension); d && pos) {
+          info = Info(*pos, *d);
+        }
+      }
+    } else if (auto tag = item.compoundTag(u8"tag"); tag) {
+      auto pos = props::GetPos3i(*tag, u8"LodestonePos");
+      if (auto dimension = tag->string(u8"LodestoneDimension"); dimension) {
+        if (auto d = DimensionFromJavaString(*dimension); d && pos) {
+          info = Info(*pos, *d);
+        }
+      }
+    }
+    if (info) {
+      auto ret = New(u8"lodestone_compass");
+      i32 tracker = ctx.fLodestones->get(info->fDimension, info->fPos);
+      auto tagB = Compound();
+      tagB->set(u8"trackingHandle", Int(tracker));
+      ret->set(u8"tag", tagB);
+      return ret;
+    } else {
+      return New(u8"compass");
+    }
+  }
+
+  static CompoundTagPtr Crossbow(std::u8string const &name, CompoundTag const &j, Context &ctx, DataVersion const &dataVersion) {
+    auto b = New(u8"crossbow");
+
+    auto chargedProjectiles = FallbackQuery(j, {u8"components/minecraft:charged_projectiles", u8"tag/ChargedProjectiles"})->asList();
+    if (chargedProjectiles) {
+      for (auto const &it : *chargedProjectiles) {
+        auto projectileJ = std::dynamic_pointer_cast<CompoundTag>(it);
+        if (!projectileJ) {
+          continue;
+        }
+        auto projectileB = From(projectileJ, ctx, dataVersion);
+        if (projectileB) {
+          auto beTag = Compound();
+          beTag->set(u8"chargedItem", projectileB);
+          b->set(u8"tag", beTag);
+          break;
+        }
+      }
+    }
+    return b;
+  }
+#pragma endregion
+
+#pragma region Converters: D
+  static CompoundTagPtr DecoratedPot(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
+    auto ret = New(name, true);
+    if (auto items = GetItems(item, ctx, dataVersion); items) {
+      for (auto const &it : *items) {
+        auto c = std::dynamic_pointer_cast<CompoundTag>(it);
+        if (!c) {
+          continue;
+        }
+        auto slot = c->byte(u8"Slot");
+        if (!slot) {
+          continue;
+        }
+        c->erase(u8"Slot");
+        if (*slot == 0) {
+          AppendTag(*ret, u8"item", c);
+          AppendTag(*ret, u8"animation", Bool(false));
+        }
+      }
+    }
+    if (auto block = Block::FromName(name, dataVersion.fTarget); block) {
+      if (auto blockData = BlockData::From(block, nullptr, dataVersion, {.fItem = true}); blockData) {
+        ret->set(u8"Block", blockData);
+      }
+    }
+    return ret;
+  }
+#pragma endregion
+
+#pragma region Converters: F
+  static CompoundTagPtr FireworkRocket(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
+    auto data = New(u8"firework_rocket");
+    auto fireworks = Migrate<CompoundTag>(item, u8"fireworks", Depth::Tag, u8"Fireworks");
+    if (fireworks) {
+      auto fireworksData = FireworksData::FromJava(*fireworks);
+      auto tag = Compound();
+      tag->set(u8"Fireworks", fireworksData.toBedrockCompoundTag());
+      data->set(u8"tag", tag);
+    }
+    return data;
+  }
+
+  static CompoundTagPtr FireworkStar(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
+    auto data = Rename(u8"firework_star")(name, item, ctx, dataVersion);
+
+    auto explosion = Migrate<CompoundTag>(item, u8"firework_explosion", Depth::Tag, u8"Explosion");
+    if (explosion) {
+      auto tag = Compound();
+
+      auto e = FireworksExplosion::FromJava(*explosion);
+      if (!e.fColors.empty()) {
+        i8 damage = FireworksExplosion::GetBedrockColorCode(e.fColors[0]);
+        data->set(u8"Damage", Short(damage));
+
+        if (auto customColor = FireworksExplosion::BedrockCustomColorFromColorCode(damage); customColor) {
+          tag->set(u8"customColor", Int(*customColor));
+        }
+      }
+
+      tag->set(u8"FireworksItem", e.toBedrockCompoundTag());
+      data->set(u8"tag", tag);
+    }
+
+    return data;
+  }
+#pragma endregion
+
+#pragma region Converters: G
+  static CompoundTagPtr GoatHorn(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
+    auto tagB = New(u8"goat_horn");
+    i16 damage = 0;
+    if (auto instrumentJ = FallbackQuery(item, {u8"components/minecraft:instrument", u8"tag/instrument"})->asString(); instrumentJ) {
+      damage = GoatHorn::BedrockDamageFromJavaInstrument(instrumentJ->fValue);
+    }
+    tagB->set(u8"Damage", Short(damage));
+    return tagB;
+  }
+#pragma endregion
+
+#pragma region Converters: L
   static CompoundTagPtr LeatherArmor(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
     auto tag = Compound();
     tag->insert({
@@ -1288,9 +1343,358 @@ private:
     return tag;
   }
 
+  static CompoundTagPtr LegacySkull(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
+    i8 type = GetSkullTypeFromBlockName(name);
+    auto tag = New(name, true);
+    tag->set(u8"Damage", Short(type));
+    return tag;
+  }
+
+  static CompoundTagPtr LegacySpawnEgg(std::u8string const &name, CompoundTag const &j, Context &ctx, DataVersion const &dataVersion) {
+    std::u8string n = name;
+    if (auto tag = j.compoundTag(u8"tag"); tag) {
+      if (auto entityTag = tag->compoundTag(u8"EntityTag"); entityTag) {
+        if (auto id = entityTag->string(u8"id"); id) {
+          std::u8string entity = Namespace::Remove(*id);
+          if (entity == u8"evocation_illager") {
+            entity = u8"evoker";
+          } else if (entity == u8"vindication_illager") {
+            entity = u8"vindicator";
+          }
+          n = u8"minecraft:" + entity + u8"_spawn_egg";
+        }
+      }
+    }
+    return New(n, true);
+  }
+#pragma endregion
+
+#pragma region Converters: O
+  static CompoundTagPtr OminousBottle(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
+    auto itemB = New(u8"ominous_bottle");
+    if (auto amplifier = item.query(u8"components/minecraft:ominous_bottle_amplifier")->asInt(); amplifier) {
+      itemB->set(u8"Damage", Short(amplifier->fValue));
+    }
+    return itemB;
+  }
+#pragma endregion
+
+#pragma region Converters: S
+  static CompoundTagPtr ShulkerBox(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
+    auto n = Namespace::Remove(name);
+    if (n == u8"shulker_box") {
+      n = u8"undyed_shulker_box";
+    }
+    auto ret = New(n);
+
+    if (auto block = Block::FromName(name, dataVersion.fTarget); block) {
+      if (auto blockData = BlockData::From(block, nullptr, dataVersion, {.fItem = true}); blockData) {
+        ret->set(u8"Block", blockData);
+      }
+    }
+
+    if (auto container = item.query(u8"components/minecraft:container")->asList(); container) {
+      auto itemsB = List<Tag::Type::Compound>();
+      for (auto const &it : *container) {
+        if (auto c = std::dynamic_pointer_cast<CompoundTag>(it); c) {
+          if (auto itemJ = c->compoundTag(u8"item"); itemJ) {
+            if (auto slotJ = c->int32(u8"slot"); slotJ) {
+              if (auto itemB = Item::From(itemJ, ctx, dataVersion); itemB) {
+                itemB->set(u8"Slot", Byte(*slotJ));
+                itemsB->push_back(itemB);
+              }
+            }
+          }
+        }
+      }
+      auto tagB = Compound();
+      tagB->set(u8"Items", itemsB);
+      ret->set(u8"tag", tagB);
+    } else if (auto itemsJ = item.query(u8"tag/BlockEntityTag/Items")->asList(); itemsJ) {
+      auto itemsB = List<Tag::Type::Compound>();
+      for (auto const &it : *itemsJ) {
+        if (auto c = std::dynamic_pointer_cast<CompoundTag>(it); c) {
+          if (auto slotJ = c->byte(u8"Slot"); slotJ) {
+            if (auto itemB = Item::From(c, ctx, dataVersion); itemB) {
+              itemB->set(u8"Slot", Byte(*slotJ));
+              itemsB->push_back(itemB);
+            }
+          }
+        }
+      }
+      auto tagB = Compound();
+      tagB->set(u8"Items", itemsB);
+      ret->set(u8"tag", tagB);
+    }
+    return ret;
+  }
+
+  static CompoundTagPtr Sign(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
+    auto ret = DefaultBlockItem(name, item, ctx, dataVersion);
+    if (!ret) {
+      return nullptr;
+    }
+    ret->set(u8"Name", name);
+    ret->erase(u8"Block");
+    return ret;
+  }
+
+  static CompoundTagPtr SimpleContainer(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
+    auto ret = New(name, true);
+    ContainerItems(item, *ret, ctx, dataVersion);
+    return ret;
+  }
+
+  static CompoundTagPtr SuspiciousStew(std::u8string const &name, CompoundTag const &j, Context const &, DataVersion const &dataVersion) {
+    auto b = New(u8"suspicious_stew");
+    i16 damage = -1;
+    if (auto effectsJ = Migrate<ListTag>(j, u8"suspicious_stew_effects", Depth::Tag, u8"effects"); effectsJ) {
+      // >= 1.20.2
+      for (auto const &it : *effectsJ) {
+        auto effectJ = it->asCompound();
+        if (!effectJ) {
+          continue;
+        }
+        auto idJ = effectJ->string(u8"id");
+        if (!idJ) {
+          continue;
+        }
+        if (auto legacyIdJ = Effect::LegacyIdFromNamespacedId(*idJ); legacyIdJ) {
+          damage = Effect::BedrockSuspiciousStewFromJavaEffect(*legacyIdJ);
+          break;
+        }
+      }
+    } else if (auto tagJ = j.compoundTag(u8"tag"); tagJ) {
+      if (auto legacyEffectsJ = tagJ->listTag(u8"Effects"); legacyEffectsJ) {
+        // <= 1.20.1
+        for (auto const &it : *legacyEffectsJ) {
+          auto effectJ = it->asCompound();
+          if (!effectJ) {
+            continue;
+          }
+          auto id = effectJ->byte(u8"EffectId");
+          if (!id) {
+            continue;
+          }
+          damage = Effect::BedrockSuspiciousStewFromJavaEffect(*id);
+          break;
+        }
+      }
+    }
+    if (damage >= 0) {
+      b->set(u8"Damage", Short(damage));
+    }
+    return b;
+  }
+#pragma endregion
+
+#pragma region Converters: T
+  static CompoundTagPtr TippedArrow(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
+    auto tag = New(u8"arrow");
+    std::optional<std::u8string> potion;
+    if (auto components = item.compoundTag(u8"components"); components) {
+      if (auto potionContents = components->compoundTag(u8"minecraft:potion_contents"); potionContents) {
+        potion = potionContents->string(u8"potion");
+      }
+    } else if (auto legacyTag = item.compoundTag(u8"tag"); legacyTag) {
+      potion = legacyTag->string(u8"Potion");
+    }
+    i16 type = 0;
+    if (potion) {
+      type = TippedArrowPotion::BedrockPotionType(*potion);
+    }
+    tag->set(u8"Damage", Short(type));
+    return tag;
+  }
+
+  static CompoundTagPtr TropicalFishBucket(std::u8string const &name, CompoundTag const &item, Context const &ctx, DataVersion const &dataVersion) {
+    auto ret = New(u8"tropical_fish_bucket");
+    ret->set(u8"Damage", Short(0));
+    auto baseColor = GetComponent<StringTag>(item, u8"tropical_fish/base_color");
+    auto pattern = GetComponent<StringTag>(item, u8"tropical_fish/pattern");
+    auto patternColor = GetComponent<StringTag>(item, u8"tropical_fish/pattern_color");
+    if (auto data = FallbackQuery(item, {u8"components/minecraft:bucket_entity_data", u8"tag"})->asCompound(); data) {
+      auto health = data->float32(u8"Health");
+      if (baseColor && pattern && patternColor) {
+        TropicalFish::JavaComponents jc;
+        jc.fBaseColor = baseColor->fValue;
+        jc.fPattern = pattern->fValue;
+        jc.fPatternColor = patternColor->fValue;
+        auto tf = TropicalFish::FromJavaComponents(jc);
+        auto tag = tf.toBedrockBucketTag(ctx.fUuids->randomEntityId(), health);
+        ret->set(u8"tag", tag);
+      } else if (auto variant = data->int32(u8"BucketVariantTag"); variant) {
+        auto tf = TropicalFish::FromJavaVariant(*variant);
+        auto tag = tf.toBedrockBucketTag(ctx.fUuids->randomEntityId(), health);
+        ret->set(u8"tag", tag);
+      }
+    }
+    return ret;
+  }
+#pragma endregion
+
+#pragma region Converters: U
+  static CompoundTagPtr UnfindableBlockContainer(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
+    auto ret = New(name, true);
+    ContainerItems(item, *ret, ctx, dataVersion);
+    if (auto block = Block::FromName(name, dataVersion.fTarget); block) {
+      if (auto blockData = BlockData::From(block, nullptr, dataVersion, {.fItem = true}); blockData) {
+        ret->set(u8"Block", blockData);
+      }
+    }
+    if (ret->query(u8"tag/Items")->asList()) {
+      AppendTag(*ret, u8"Findable", Bool(false));
+    }
+    return ret;
+  }
+#pragma endregion
+
+#pragma region Converters: W
+  static CompoundTagPtr WolfArmor(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
+    auto itemB = New(u8"wolf_armor");
+    std::optional<i32> color;
+    if (auto dyedColor = GetComponent<IntTag>(item, u8"minecraft:dyed_color"); dyedColor) {
+      color = dyedColor->fValue;
+    } else if (auto dyedColor = GetComponent<CompoundTag>(item, u8"minecraft:dyed_color"); dyedColor) {
+      if (auto rgb = dyedColor->int32(u8"rgb"); rgb) {
+        color = *rgb;
+      }
+    }
+    if (color) {
+      auto tagB = Compound();
+      tagB->set(u8"customColor", Int(CustomColor(*color)));
+      itemB->set(u8"tag", tagB);
+    }
+    return itemB;
+  }
+#pragma endregion
+
+#pragma region Converter generators
+  static Converter FishBucket(std::u8string const &type) {
+    return [=](std::u8string const &name, CompoundTag const &item, Context const &ctx, DataVersion const &dataVersion) {
+      auto ret = New(type + u8"_bucket");
+      ret->set(u8"Damage", Short(0));
+      if (auto data = FallbackQuery(item, {u8"components/minecraft:bucket_entity_data", u8"tag"})->asCompound(); data) {
+        Entity::Rep rep(ctx.fUuids->randomEntityId());
+        rep.fDefinitions.push_back(u8"+minecraft:" + type);
+        rep.fDefinitions.push_back(u8"+");
+        if (type == u8"salmon") {
+          StringTagPtr size = GetComponent<StringTag>(item, u8"salmon/size");
+          if (!size) {
+            size = data->stringTag(u8"type");
+          }
+          if (size && size->fValue == u8"small") {
+            rep.fDefinitions.push_back(u8"+scale_small");
+          } else if (size && size->fValue == u8"large") {
+            rep.fDefinitions.push_back(u8"+scale_large");
+          } else {
+            // "medium" or nullopt
+            rep.fDefinitions.push_back(u8"+scale_normal");
+          }
+        }
+        auto tagB = rep.toCompoundTag();
+        auto health = data->float32(u8"Health");
+        auto attributes = EntityAttributes::Mob(Namespace::Add(type), health);
+        if (attributes) {
+          tagB->set(u8"Attributes", attributes->toBedrockListTag());
+        }
+        if (auto age = data->int32(u8"Age"); age) {
+          tagB->set(u8"Age", Int(*age));
+        }
+        ret->set(u8"tag", tagB);
+      }
+      return ret;
+    };
+  }
+
+  static Converter MushroomBlock(std::u8string const &name, int hugeMushroomBits) {
+    return [=](std::u8string const &, CompoundTag const &item, Context const &, DataVersion const &dataVersion) -> CompoundTagPtr {
+      using namespace std;
+
+      auto block = Block::FromName(name, dataVersion.fTarget);
+      auto blockData = BlockData::From(block, nullptr, dataVersion, {.fItem = true});
+
+      auto states = Compound();
+      states->set(u8"huge_mushroom_bits", Int(hugeMushroomBits));
+      blockData->set(u8"states", states);
+
+      auto tag = New(name, true);
+      tag->set(u8"Damage", Short(0));
+      tag->set(u8"Block", blockData);
+      return tag;
+    };
+  }
+
+  static Converter Rename(std::u8string const &newName) {
+    return [=](std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
+      auto tag = New(newName);
+      return tag;
+    };
+  }
+
+  static Converter Subtype(std::u8string const &newName, i16 damage) {
+    return [=](std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
+      auto tag = New(newName);
+      tag->set(u8"Damage", Short(damage));
+      return tag;
+    };
+  }
+#pragma endregion
+
+#pragma region Utilities
+  static void ContainerItems(CompoundTag const &itemJ, CompoundTag &itemB, Context &ctx, DataVersion const &dataVersion) {
+    auto itemsB = GetItems(itemJ, ctx, dataVersion);
+    if (!itemsB) {
+      return;
+    }
+    AppendTag(itemB, u8"Items", itemsB);
+  }
+
   static i32 CustomColor(i32 rgb) {
     u32 v = 0xff000000 | *(u32 *)&rgb;
     return *(i32 *)&v;
+  }
+
+  static ListTagPtr GetItems(CompoundTag const &itemJ, Context &ctx, DataVersion const &dataVersion) {
+    if (auto container = itemJ.query(u8"components/minecraft:container")->asList(); container) {
+      auto itemsB = List<Tag::Type::Compound>();
+      for (auto const &it : *container) {
+        if (auto c = std::dynamic_pointer_cast<CompoundTag>(it); c) {
+          if (auto iJ = c->compoundTag(u8"item"); iJ) {
+            if (auto slotJ = c->int32(u8"slot"); slotJ) {
+              if (auto itemB = Item::From(iJ, ctx, dataVersion); itemB) {
+                itemB->set(u8"Slot", Byte(*slotJ));
+                itemsB->push_back(itemB);
+              }
+            }
+          }
+        }
+      }
+      return itemsB;
+    } else if (auto itemsJ = itemJ.query(u8"tag/BlockEntityTag/Items")->asList(); itemsJ) {
+      auto itemsB = List<Tag::Type::Compound>();
+      for (auto const &it : *itemsJ) {
+        if (auto c = std::dynamic_pointer_cast<CompoundTag>(it); c) {
+          if (auto slotJ = c->byte(u8"Slot"); slotJ) {
+            if (auto itemB = Item::From(c, ctx, dataVersion); itemB) {
+              itemB->set(u8"Slot", Byte(*slotJ));
+              itemsB->push_back(itemB);
+            }
+          }
+        }
+      }
+      return itemsB;
+    } else {
+      return nullptr;
+    }
+  }
+
+  // converts block name (bedrock) to item name (bedrock)
+  static std::u8string ItemNameFromBlockName(std::u8string const &name) {
+    if (name == u8"minecraft:concretePowder") {
+      return u8"minecraft:concrete_powder";
+    }
+    return name;
   }
 
   static std::optional<std::tuple<int, CompoundTagPtr>> Map(std::u8string const &name, CompoundTag const &item, JavaEditionMap const &mapInfo) {
@@ -1337,333 +1741,6 @@ private:
     return make_tuple(mapId->fValue, ret);
   }
 
-  static CompoundTagPtr AnyPotion(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
-    std::u8string itemName = name;
-    std::optional<i16> type;
-    if (auto potionContents = FallbackQuery(item, {u8"components/minecraft:potion_contents", u8"tag"})->asCompound(); potionContents) {
-      if (auto potion = FallbackValue<std::u8string>(*potionContents, {u8"potion", u8"Potion"}); potion) {
-        type = Potion::BedrockPotionTypeFromJava(*potion);
-      }
-    }
-    if (!type) {
-      if (auto damage = item.int16(u8"Damage"); damage) {
-        if (auto ret = Potion::JavaPotionTypeAndItemNameFromLegacyJavaDamage(*damage); ret) {
-          itemName = ret->fItemName;
-          type = Potion::BedrockPotionTypeFromJava(ret->fPotionType);
-        }
-      }
-    }
-    if (!type) {
-      type = 0;
-    }
-    auto tag = New(itemName, true);
-    tag->set(u8"Damage", Short(*type));
-    return tag;
-  }
-
-  static CompoundTagPtr TippedArrow(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
-    auto tag = New(u8"arrow");
-    std::optional<std::u8string> potion;
-    if (auto components = item.compoundTag(u8"components"); components) {
-      if (auto potionContents = components->compoundTag(u8"minecraft:potion_contents"); potionContents) {
-        potion = potionContents->string(u8"potion");
-      }
-    } else if (auto legacyTag = item.compoundTag(u8"tag"); legacyTag) {
-      potion = legacyTag->string(u8"Potion");
-    }
-    i16 type = 0;
-    if (potion) {
-      type = TippedArrowPotion::BedrockPotionType(*potion);
-    }
-    tag->set(u8"Damage", Short(type));
-    return tag;
-  }
-
-  static CompoundTagPtr FireworkStar(std::u8string const &name, CompoundTag const &item, Context &ctx, DataVersion const &dataVersion) {
-    auto data = Rename(u8"firework_star")(name, item, ctx, dataVersion);
-
-    auto explosion = Migrate<CompoundTag>(item, u8"firework_explosion", Depth::Tag, u8"Explosion");
-    if (explosion) {
-      auto tag = Compound();
-
-      auto e = FireworksExplosion::FromJava(*explosion);
-      if (!e.fColors.empty()) {
-        i8 damage = FireworksExplosion::GetBedrockColorCode(e.fColors[0]);
-        data->set(u8"Damage", Short(damage));
-
-        if (auto customColor = FireworksExplosion::BedrockCustomColorFromColorCode(damage); customColor) {
-          tag->set(u8"customColor", Int(*customColor));
-        }
-      }
-
-      tag->set(u8"FireworksItem", e.toBedrockCompoundTag());
-      data->set(u8"tag", tag);
-    }
-
-    return data;
-  }
-
-  static CompoundTagPtr FireworkRocket(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
-    auto data = New(u8"firework_rocket");
-    auto fireworks = Migrate<CompoundTag>(item, u8"fireworks", Depth::Tag, u8"Fireworks");
-    if (fireworks) {
-      auto fireworksData = FireworksData::FromJava(*fireworks);
-      auto tag = Compound();
-      tag->set(u8"Fireworks", fireworksData.toBedrockCompoundTag());
-      data->set(u8"tag", tag);
-    }
-    return data;
-  }
-
-  static Converter Subtype(std::u8string const &newName, i16 damage) {
-    return [=](std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
-      auto tag = New(newName);
-      tag->set(u8"Damage", Short(damage));
-      return tag;
-    };
-  }
-
-  static CompoundTagPtr AnyTorch(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
-    using namespace std;
-
-    auto block = Block::FromName(name, dataVersion.fTarget);
-    auto blockData = BlockData::From(block, nullptr, dataVersion, {.fItem = true});
-
-    auto states = Compound();
-    states->set(u8"torch_facing_direction", u8"unknown");
-    blockData->set(u8"states", states);
-
-    auto tag = New(name, true);
-    tag->set(u8"Damage", Short(0));
-    tag->set(u8"Block", blockData);
-    return tag;
-  }
-
-  static Converter Rename(std::u8string const &newName) {
-    return [=](std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
-      auto tag = New(newName);
-      return tag;
-    };
-  }
-
-  static CompoundTagPtr LegacySkull(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
-    i8 type = GetSkullTypeFromBlockName(name);
-    auto tag = New(name, true);
-    tag->set(u8"Damage", Short(type));
-    return tag;
-  }
-
-  static CompoundTagPtr LegacySpawnEgg(std::u8string const &name, CompoundTag const &j, Context &ctx, DataVersion const &dataVersion) {
-    std::u8string n = name;
-    if (auto tag = j.compoundTag(u8"tag"); tag) {
-      if (auto entityTag = tag->compoundTag(u8"EntityTag"); entityTag) {
-        if (auto id = entityTag->string(u8"id"); id) {
-          std::u8string entity = Namespace::Remove(*id);
-          if (entity == u8"evocation_illager") {
-            entity = u8"evoker";
-          } else if (entity == u8"vindication_illager") {
-            entity = u8"vindicator";
-          }
-          n = u8"minecraft:" + entity + u8"_spawn_egg";
-        }
-      }
-    }
-    return New(n, true);
-  }
-
-  static CompoundTagPtr SuspiciousStew(std::u8string const &name, CompoundTag const &j, Context const &, DataVersion const &dataVersion) {
-    auto b = New(u8"suspicious_stew");
-    i16 damage = -1;
-    if (auto effectsJ = Migrate<ListTag>(j, u8"suspicious_stew_effects", Depth::Tag, u8"effects"); effectsJ) {
-      // >= 1.20.2
-      for (auto const &it : *effectsJ) {
-        auto effectJ = it->asCompound();
-        if (!effectJ) {
-          continue;
-        }
-        auto idJ = effectJ->string(u8"id");
-        if (!idJ) {
-          continue;
-        }
-        if (auto legacyIdJ = Effect::LegacyIdFromNamespacedId(*idJ); legacyIdJ) {
-          damage = Effect::BedrockSuspiciousStewFromJavaEffect(*legacyIdJ);
-          break;
-        }
-      }
-    } else if (auto tagJ = j.compoundTag(u8"tag"); tagJ) {
-      if (auto legacyEffectsJ = tagJ->listTag(u8"Effects"); legacyEffectsJ) {
-        // <= 1.20.1
-        for (auto const &it : *legacyEffectsJ) {
-          auto effectJ = it->asCompound();
-          if (!effectJ) {
-            continue;
-          }
-          auto id = effectJ->byte(u8"EffectId");
-          if (!id) {
-            continue;
-          }
-          damage = Effect::BedrockSuspiciousStewFromJavaEffect(*id);
-          break;
-        }
-      }
-    }
-    if (damage >= 0) {
-      b->set(u8"Damage", Short(damage));
-    }
-    return b;
-  }
-
-  static CompoundTagPtr Crossbow(std::u8string const &name, CompoundTag const &j, Context &ctx, DataVersion const &dataVersion) {
-    auto b = New(u8"crossbow");
-
-    auto chargedProjectiles = FallbackQuery(j, {u8"components/minecraft:charged_projectiles", u8"tag/ChargedProjectiles"})->asList();
-    if (chargedProjectiles) {
-      for (auto const &it : *chargedProjectiles) {
-        auto projectileJ = std::dynamic_pointer_cast<CompoundTag>(it);
-        if (!projectileJ) {
-          continue;
-        }
-        auto projectileB = From(projectileJ, ctx, dataVersion);
-        if (projectileB) {
-          auto beTag = Compound();
-          beTag->set(u8"chargedItem", projectileB);
-          b->set(u8"tag", beTag);
-          break;
-        }
-      }
-    }
-    return b;
-  }
-
-  static CompoundTagPtr Banner(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
-    auto colorName = strings::RemovePrefixAndSuffix(u8"minecraft:", name, u8"_banner");
-    BannerColorCodeBedrock color = BannerColorCodeFromName(colorName);
-    i16 damage = (i16)color;
-    auto ret = New(u8"banner");
-    ret->set(u8"Damage", Short(damage));
-
-    bool ominous = false;
-    if (auto itemName = Migrate<StringTag>(item, u8"item_name", Depth::Display, u8"Name"); itemName) {
-      auto json = props::ParseAsJson(itemName->fValue);
-      if (json) {
-        auto translate = json->find("translate");
-        if (translate != json->end() && translate->is_string() && props::GetJsonStringValue(*translate) == u8"block.minecraft.ominous_banner") {
-          ominous = true;
-        }
-      }
-    } else if (auto itemName = GetComponent<CompoundTag>(item, u8"item_name"); itemName) {
-      if (auto translate = itemName->string(u8"translate"); translate == u8"block.minecraft.ominous_banner") {
-        ominous = true;
-      }
-    }
-
-    auto patterns = Migrate<ListTag>(item, u8"banner_patterns", Depth::BlockEntityTag, u8"Patterns");
-
-    auto tag = Compound();
-    if (ominous) {
-      tag->set(u8"Type", Int(1));
-      ret->set(u8"tag", tag);
-    } else if (patterns) {
-      auto bePatterns = List<Tag::Type::Compound>();
-      for (auto const &it : *patterns) {
-        auto c = it->asCompound();
-        if (!c) {
-          continue;
-        }
-        ColorCodeJava patternColor;
-        if (auto patternColorString = c->string(u8"color"); patternColorString) {
-          patternColor = ColorCodeJavaFromJavaName(*patternColorString);
-        } else if (auto patternColorInt = c->int32(u8"Color"); patternColorInt) {
-          patternColor = static_cast<ColorCodeJava>(*patternColorInt);
-        } else {
-          continue;
-        }
-        auto patternJ = FallbackPtr<StringTag>(*c, {u8"pattern", u8"Pattern"});
-        if (!patternJ) {
-          continue;
-        }
-        auto patternB = Banner::BedrockOrLegacyJavaPatternFromJava(patternJ->fValue);
-        auto ptag = Compound();
-        ptag->insert({
-            {u8"Color", Int(static_cast<i32>(BannerColorCodeFromJava(patternColor)))},
-            {u8"Pattern", String(Wrap(patternB, patternJ->fValue))},
-        });
-        bePatterns->push_back(ptag);
-      }
-      tag->set(u8"Patterns", bePatterns);
-      tag->set(u8"Type", Int(0));
-    } else {
-      tag->set(u8"Type", Int(0));
-    }
-    ret->set(u8"tag", tag);
-
-    return ret;
-  }
-
-  static CompoundTagPtr Bed(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
-    using namespace std;
-    u8string colorName = strings::RemovePrefixAndSuffix(u8"minecraft:", name, u8"_bed");
-    ColorCodeJava color = ColorCodeJavaFromJavaName(colorName);
-    i16 damage = (i16)color;
-    auto tag = New(u8"bed");
-    tag->set(u8"Damage", Short(damage));
-    return tag;
-  }
-
-  static Converter MushroomBlock(std::u8string const &name, int hugeMushroomBits) {
-    return [=](std::u8string const &, CompoundTag const &item, Context const &, DataVersion const &dataVersion) -> CompoundTagPtr {
-      using namespace std;
-
-      auto block = Block::FromName(name, dataVersion.fTarget);
-      auto blockData = BlockData::From(block, nullptr, dataVersion, {.fItem = true});
-
-      auto states = Compound();
-      states->set(u8"huge_mushroom_bits", Int(hugeMushroomBits));
-      blockData->set(u8"states", states);
-
-      auto tag = New(name, true);
-      tag->set(u8"Damage", Short(0));
-      tag->set(u8"Block", blockData);
-      return tag;
-    };
-  }
-
-  static CompoundTagPtr GoatHorn(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
-    auto tagB = New(u8"goat_horn");
-    i16 damage = 0;
-    if (auto instrumentJ = FallbackQuery(item, {u8"components/minecraft:instrument", u8"tag/instrument"})->asString(); instrumentJ) {
-      damage = GoatHorn::BedrockDamageFromJavaInstrument(instrumentJ->fValue);
-    }
-    tagB->set(u8"Damage", Short(damage));
-    return tagB;
-  }
-
-  static CompoundTagPtr WolfArmor(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
-    auto itemB = New(u8"wolf_armor");
-    std::optional<i32> color;
-    if (auto dyedColor = GetComponent<IntTag>(item, u8"minecraft:dyed_color"); dyedColor) {
-      color = dyedColor->fValue;
-    } else if (auto dyedColor = GetComponent<CompoundTag>(item, u8"minecraft:dyed_color"); dyedColor) {
-      if (auto rgb = dyedColor->int32(u8"rgb"); rgb) {
-        color = *rgb;
-      }
-    }
-    if (color) {
-      auto tagB = Compound();
-      tagB->set(u8"customColor", Int(CustomColor(*color)));
-      itemB->set(u8"tag", tagB);
-    }
-    return itemB;
-  }
-
-  static CompoundTagPtr OminousBottle(std::u8string const &name, CompoundTag const &item, Context const &, DataVersion const &dataVersion) {
-    auto itemB = New(u8"ominous_bottle");
-    if (auto amplifier = item.query(u8"components/minecraft:ominous_bottle_amplifier")->asInt(); amplifier) {
-      itemB->set(u8"Damage", Short(amplifier->fValue));
-    }
-    return itemB;
-  }
-
   static CompoundTagPtr New(std::u8string const &name, bool fullname = false) {
     std::u8string n;
     if (fullname) {
@@ -1680,6 +1757,7 @@ private:
     });
     return tag;
   }
+#pragma endregion
 
   Impl() = delete;
 
@@ -1894,56 +1972,6 @@ private:
     }
 
     return itemB;
-  }
-
-  static void ContainerItems(CompoundTag const &itemJ, CompoundTag &itemB, Context &ctx, DataVersion const &dataVersion) {
-    auto itemsB = GetItems(itemJ, ctx, dataVersion);
-    if (!itemsB) {
-      return;
-    }
-    AppendTag(itemB, u8"Items", itemsB);
-  }
-
-  static ListTagPtr GetItems(CompoundTag const &itemJ, Context &ctx, DataVersion const &dataVersion) {
-    if (auto container = itemJ.query(u8"components/minecraft:container")->asList(); container) {
-      auto itemsB = List<Tag::Type::Compound>();
-      for (auto const &it : *container) {
-        if (auto c = std::dynamic_pointer_cast<CompoundTag>(it); c) {
-          if (auto iJ = c->compoundTag(u8"item"); iJ) {
-            if (auto slotJ = c->int32(u8"slot"); slotJ) {
-              if (auto itemB = Item::From(iJ, ctx, dataVersion); itemB) {
-                itemB->set(u8"Slot", Byte(*slotJ));
-                itemsB->push_back(itemB);
-              }
-            }
-          }
-        }
-      }
-      return itemsB;
-    } else if (auto itemsJ = itemJ.query(u8"tag/BlockEntityTag/Items")->asList(); itemsJ) {
-      auto itemsB = List<Tag::Type::Compound>();
-      for (auto const &it : *itemsJ) {
-        if (auto c = std::dynamic_pointer_cast<CompoundTag>(it); c) {
-          if (auto slotJ = c->byte(u8"Slot"); slotJ) {
-            if (auto itemB = Item::From(c, ctx, dataVersion); itemB) {
-              itemB->set(u8"Slot", Byte(*slotJ));
-              itemsB->push_back(itemB);
-            }
-          }
-        }
-      }
-      return itemsB;
-    } else {
-      return nullptr;
-    }
-  }
-
-  // converts block name (bedrock) to item name (bedrock)
-  static std::u8string ItemNameFromBlockName(std::u8string const &name) {
-    if (name == u8"minecraft:concretePowder") {
-      return u8"minecraft:concrete_powder";
-    }
-    return name;
   }
 };
 
