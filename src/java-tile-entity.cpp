@@ -10,6 +10,7 @@
 #include "enums/_color-code-java.hpp"
 #include "enums/_facing4.hpp"
 #include "item/_banner.hpp"
+#include "item/_copper-golem-pose.hpp"
 #include "java/_components.hpp"
 #include "java/_context.hpp"
 #include "java/_entity.hpp"
@@ -850,14 +851,7 @@ private:
     tagB->set(u8"id", String(u8"CopperGolemStatue"));
     tagB->set(u8"isMovable", Bool(true));
     auto poseJ = b.property(u8"copper_golem_pose", u8"standing");
-    int poseB = 0;
-    if (poseJ == u8"sitting") {
-      poseB = 1;
-    } else if (poseJ == u8"running") {
-      poseB = 2;
-    } else if (poseJ == u8"star") {
-      poseB = 3;
-    }
+    int poseB = CopperGolemPose::BedrockFromJava(std::u8string(poseJ));
     tagB->set(u8"Pose", Int(poseB));
     Attach(j, pos, *tagB);
     return tagB;

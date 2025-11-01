@@ -14,6 +14,7 @@
 #include "enums/_red-flower.hpp"
 #include "enums/_skull-type.hpp"
 #include "item/_banner.hpp"
+#include "item/_copper-golem-pose.hpp"
 #include "java/_components.hpp"
 #include "tile-entity/_beacon.hpp"
 #include "tile-entity/_loot-table.hpp"
@@ -414,22 +415,7 @@ public:
     auto t = EmptyShortName(u8"copper_golem_statue", pos);
     Result r;
     r.fTileEntity = t;
-    std::u8string poseJ;
-    switch (tagB.int32(u8"Pose", 0)) {
-    case 1:
-      poseJ = u8"sitting";
-      break;
-    case 2:
-      poseJ = u8"running";
-      break;
-    case 3:
-      poseJ = u8"star";
-      break;
-    case 0:
-    default:
-      poseJ = u8"standing";
-      break;
-    }
+    auto poseJ = CopperGolemPose::JavaFromBedrock(tagB.int32(u8"Pose", 0));
     r.fBlock = blockJ.applying({{u8"copper_golem_pose", poseJ}});
     return r;
   }

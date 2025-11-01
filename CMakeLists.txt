@@ -280,6 +280,7 @@ set(je2be_src_files
   src/enums/_villager-profession.hpp
   src/enums/_villager-type.hpp
   src/item/_banner.hpp
+  src/item/_copper-golem-pose.hpp
   src/item/_enchantments.hpp
   src/item/_fireworks-explosion.hpp
   src/item/_fireworks.hpp

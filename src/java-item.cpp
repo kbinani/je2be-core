@@ -15,6 +15,7 @@
 #include "enums/_effect.hpp"
 #include "enums/_skull-type.hpp"
 #include "item/_banner.hpp"
+#include "item/_copper-golem-pose.hpp"
 #include "item/_fireworks-explosion.hpp"
 #include "item/_fireworks.hpp"
 #include "item/_goat-horn.hpp"
@@ -815,6 +816,17 @@ private:
     E(blue_egg, DefaultItem);
     E(brown_egg, DefaultItem);
     E(happy_ghast_spawn_egg, DefaultItem);
+
+    E(copper_golem_statue, CopperGolemStatue);
+    E(exposed_copper_golem_statue, CopperGolemStatue);
+    E(weathered_copper_golem_statue, CopperGolemStatue);
+    E(oxidized_copper_golem_statue, CopperGolemStatue);
+    E(waxed_copper_golem_statue, CopperGolemStatue);
+    E(waxed_exposed_copper_golem_statue, CopperGolemStatue);
+    E(waxed_weathered_copper_golem_statue, CopperGolemStatue);
+    E(waxed_oxidized_copper_golem_statue, CopperGolemStatue);
+    E(copper_nugget, DefaultItem);
+    E(copper_golem_spawn_egg, DefaultItem);
 #undef E
     return table;
   }
@@ -1221,6 +1233,27 @@ private:
     } else {
       return New(u8"compass");
     }
+  }
+
+  static CompoundTagPtr CopperGolemStatue(std::u8string const &name, CompoundTag const &j, Context &ctx, DataVersion const &dataVersion) {
+    auto b = New(name, true);
+
+    auto tagB = Compound();
+    b->set(u8"tag", tagB);
+
+    auto actorB = Compound();
+    actorB->set(u8"ActorIdentifier", String(u8"minecraft:copper_golem<>"));
+    actorB->set(u8"SaveData", Compound());
+    tagB->set(u8"Actor", actorB);
+
+    int poseB = 0;
+    if (auto blockStateJ = GetComponent<CompoundTag>(j, u8"block_state"); blockStateJ) {
+      auto poseJ = blockStateJ->string(u8"copper_golem_pose", u8"standing");
+      poseB = CopperGolemPose::BedrockFromJava(poseJ);
+    }
+    tagB->set(u8"Pose", Int(poseB));
+
+    return b;
   }
 
   static CompoundTagPtr Crossbow(std::u8string const &name, CompoundTag const &j, Context &ctx, DataVersion const &dataVersion) {

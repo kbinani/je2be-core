@@ -13,6 +13,7 @@
 #include "enums/_effect.hpp"
 #include "enums/_skull-type.hpp"
 #include "item/_banner.hpp"
+#include "item/_copper-golem-pose.hpp"
 #include "item/_enchantments.hpp"
 #include "item/_fireworks.hpp"
 #include "item/_goat-horn.hpp"
@@ -1085,6 +1086,19 @@ public:
     }
     return name;
   }
+
+  static std::u8string CopperGolemStatue(std::u8string const &name, CompoundTag const &itemB, CompoundTag &itemJ, Context &ctx, int dataVersion, Options const &opt) {
+    if (auto tagB = itemB.compoundTag(u8"tag"); tagB) {
+      auto poseB = tagB->int32(u8"Pose", 0);
+      if (poseB != 0) {
+        auto poseJ = CopperGolemPose::JavaFromBedrock(poseB);
+        auto blockState = Compound();
+        blockState->set(u8"copper_golem_pose", String(poseJ));
+        java::AppendComponent(itemJ, u8"block_state", blockState);
+      }
+    }
+    return name;
+  }
 #pragma endregion
 
 #pragma region Converter generators
@@ -1247,6 +1261,14 @@ public:
     E(normal_stone_slab, Rename(u8"stone_slab"));
 
     E(iron_chain, Rename(u8"chain"));
+    E(copper_golem_statue, CopperGolemStatue);
+    E(exposed_copper_golem_statue, CopperGolemStatue);
+    E(weathered_copper_golem_statue, CopperGolemStatue);
+    E(oxidized_copper_golem_statue, CopperGolemStatue);
+    E(waxed_copper_golem_statue, CopperGolemStatue);
+    E(waxed_exposed_copper_golem_statue, CopperGolemStatue);
+    E(waxed_weathered_copper_golem_statue, CopperGolemStatue);
+    E(waxed_oxidized_copper_golem_statue, CopperGolemStatue);
 #undef E
     return ret;
   }
