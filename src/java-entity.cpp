@@ -2515,7 +2515,7 @@ private:
     };
   }
 
-  static Behavior Definitions(std::list<std::u8string> defs) {
+  static Behavior Definitions(std::initializer_list<std::u8string> defs) {
     return [=](CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
       for (std::u8string const &def : defs) {
         AddDefinition(c, def);
