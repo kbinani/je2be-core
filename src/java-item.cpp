@@ -1263,6 +1263,11 @@ private:
     }
     tagB->set(u8"Pose", Int(poseB));
 
+    auto block = Block::FromName(name, dataVersion.fTarget);
+    if (auto blockData = BlockData::From(block, nullptr, dataVersion, {.fItem = true}); blockData) {
+      b->set(u8"Block", blockData);
+    }
+
     return b;
   }
 
