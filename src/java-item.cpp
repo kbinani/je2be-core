@@ -180,6 +180,7 @@ private:
     E(piglin_head, DefaultItem);
 
     E(chain, Rename(u8"iron_chain"));
+    E(copper_torch, AnyTorch);
 #undef E
     return table;
   }
