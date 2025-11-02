@@ -96,14 +96,23 @@ public:
     return b.fName.ends_with(u8"fence");
   }
 
-  static bool IsGlassPaneOrIronBars(mcfile::be::Block const &b) {
+  static bool IsGlassPaneOrMetalBars(mcfile::be::Block const &b) {
     return b.fName.ends_with(u8"glass_pane") ||
-           b.fName == u8"minecraft:iron_bars";
+           b.fName == u8"minecraft:iron_bars" ||
+           b.fName.ends_with(u8"copper_bars");
   }
 
-  static bool IsGlassPaneOrIronBars(mcfile::je::Block const &b) {
+  static bool IsGlassPaneOrMetalBars(mcfile::je::Block const &b) {
     return b.fName.ends_with(u8"glass_pane") ||
-           b.fId == mcfile::blocks::minecraft::iron_bars;
+           b.fId == mcfile::blocks::minecraft::iron_bars ||
+           b.fId == mcfile::blocks::minecraft::copper_bars ||
+           b.fId == mcfile::blocks::minecraft::exposed_copper_bars ||
+           b.fId == mcfile::blocks::minecraft::weathered_copper_bars ||
+           b.fId == mcfile::blocks::minecraft::oxidized_copper_bars ||
+           b.fId == mcfile::blocks::minecraft::waxed_copper_bars ||
+           b.fId == mcfile::blocks::minecraft::waxed_exposed_copper_bars ||
+           b.fId == mcfile::blocks::minecraft::waxed_weathered_copper_bars ||
+           b.fId == mcfile::blocks::minecraft::waxed_oxidized_copper_bars;
   }
 
   static bool IsCampfire(mcfile::be::Block const &b) {
@@ -266,8 +275,8 @@ public:
       return CHORUS_PLANT;
     } else if (IsFence(b)) {
       return FENCE;
-    } else if (IsGlassPaneOrIronBars(b)) {
-      return GLASS_PANE_OR_IRON_BARS;
+    } else if (IsGlassPaneOrMetalBars(b)) {
+      return GLASS_PANE_OR_METAL_BARS;
     } else if (IsCampfire(b)) {
       return CAMPFIRE;
     } else if (IsNoteBlock(b)) {
@@ -427,7 +436,7 @@ void BlockPropertyAccessor::updateHasProperties(DataType p) {
   fHasSnowy |= p == SNOWY;
   fHasChorusPlant |= p == CHORUS_PLANT;
   fHasFence |= p == FENCE;
-  fHasGlassPaneOrIronBars |= p == GLASS_PANE_OR_IRON_BARS;
+  fHasGlassPaneOrMetalBars |= p == GLASS_PANE_OR_METAL_BARS;
   fHasCampfire |= p == CAMPFIRE;
   fHasNoteBlock |= p == NOTE_BLOCK;
   fHasRedstoneWire |= p == REDSTONE_WIRE;

@@ -94,7 +94,7 @@ public:
 
   static void DoGlassPaneOrIronBars(mcfile::je::Chunk &out, BlockAccessor<mcfile::je::Block> &cache, BlockPropertyAccessor const &accessor) {
     using namespace std;
-    if (!accessor.fHasGlassPaneOrIronBars) {
+    if (!accessor.fHasGlassPaneOrMetalBars) {
       return;
     }
     int cx = out.fChunkX;
@@ -106,7 +106,7 @@ public:
       for (int z = cz * 16; z < cz * 16 + 16; z++) {
         for (int x = cx * 16; x < cx * 16 + 16; x++) {
           auto p = accessor.property(x, y, z);
-          if (p != BlockPropertyAccessor::GLASS_PANE_OR_IRON_BARS) {
+          if (p != BlockPropertyAccessor::GLASS_PANE_OR_METAL_BARS) {
             continue;
           }
           auto blockJ = out.blockAt(x, y, z);

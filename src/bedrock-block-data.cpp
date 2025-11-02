@@ -3359,6 +3359,14 @@ private:
     E(waxed_exposed_copper_golem_statue, CopperGolemStatue);
     E(waxed_weathered_copper_golem_statue, CopperGolemStatue);
     E(waxed_oxidized_copper_golem_statue, CopperGolemStatue);
+    E(copper_bars, BlockWithSubmergible);
+    E(exposed_copper_bars, BlockWithSubmergible);
+    E(weathered_copper_bars, BlockWithSubmergible);
+    E(oxidized_copper_bars, BlockWithSubmergible);
+    E(waxed_copper_bars, BlockWithSubmergible);
+    E(waxed_exposed_copper_bars, BlockWithSubmergible);
+    E(waxed_weathered_copper_bars, BlockWithSubmergible);
+    E(waxed_oxidized_copper_bars, BlockWithSubmergible);
 #undef E
 
     return table;

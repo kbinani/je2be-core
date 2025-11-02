@@ -25,7 +25,7 @@ public:
     SNOWY = 7,
     CHORUS_PLANT = 8,
     FENCE = 9,
-    GLASS_PANE_OR_IRON_BARS = 10,
+    GLASS_PANE_OR_METAL_BARS = 10,
     CAMPFIRE = 11,
     NOTE_BLOCK = 12,
     REDSTONE_WIRE = 13,
@@ -68,7 +68,7 @@ public:
   bool fHasSnowy = false;
   bool fHasChorusPlant = false;
   bool fHasFence = false;
-  bool fHasGlassPaneOrIronBars = false;
+  bool fHasGlassPaneOrMetalBars = false;
   bool fHasCampfire = false;
   bool fHasNoteBlock = false;
   bool fHasRedstoneWire = false;
