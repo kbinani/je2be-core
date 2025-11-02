@@ -78,4 +78,13 @@ static inline std::shared_ptr<ListTag> List() {
   return std::make_shared<ListTag>(type);
 };
 
+template <Tag::Type type, class Container>
+static inline std::shared_ptr<ListTag> ListFrom(Container const &container) {
+  auto ret = List<type>();
+  for (auto const &it : container) {
+    ret->push_back(it);
+  }
+  return ret;
+}
+
 } // namespace je2be

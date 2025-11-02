@@ -1344,9 +1344,9 @@ private:
     tag->set(u8"id", String(u8"Shelf"));
     tag->set(u8"isMovable", Bool(true));
     if (c) {
-      auto itemsB = List<Tag::Type::Compound>();
+      std::vector<CompoundTagPtr> itemsB;
       for (int i = 0; i < 3; i++) {
-        itemsB->push_back(Item::Empty());
+        itemsB.push_back(Item::Empty());
       }
       if (auto itemsJ = c->listTag(u8"Items"); itemsJ) {
         for (auto const &it : *itemsJ) {
@@ -1365,10 +1365,12 @@ private:
           if (!itemB) {
             continue;
           }
-          itemsB->fValue[*slot] = itemB;
+          itemsB[*slot] = itemB;
         }
       }
-      tag->set(u8"Items", itemsB);
+      if (std::ranges::any_of(itemsB, [](auto const &it) { if (auto count = Item::Count(*it); count) { return *count > 0; } else { return false; } })) {
+        tag->set(u8"Items", ListFrom<Tag::Type::Compound>(itemsB));
+      }
     }
     Attach(c, pos, *tag);
     return tag;
