@@ -10,14 +10,6 @@ public:
   BlockAccessorBox360(int cx, int cz, std::filesystem::path const &directory) : fChunkX(cx), fChunkZ(cz), fCache(Width * Height), fCacheLoaded(Width * Height, false), fDir(directory) {
   }
 
-  std::shared_ptr<mcfile::je::Chunk> at(int cx, int cz) const {
-    auto index = this->index(cx, cz);
-    if (!index) {
-      return nullptr;
-    }
-    return fCache[*index];
-  }
-
   std::shared_ptr<mcfile::je::Block const> blockAt(int bx, int by, int bz) override {
     int cx = mcfile::Coordinate::ChunkFromBlock(bx);
     int cz = mcfile::Coordinate::ChunkFromBlock(bz);
