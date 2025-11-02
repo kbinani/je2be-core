@@ -34,7 +34,7 @@ endif()
 CPMAddPackage(
   NAME libminecraft-file
   GITHUB_REPOSITORY kbinani/libminecraft-file
-  GIT_TAG d97c4f2236c2573b67a5d4cf4151c33af530aafa)
+  GIT_TAG f16f85893553e16f373f96e9033fec1a807b505c)
 
 CPMAddPackage(
   NAME defer
@@ -471,16 +471,16 @@ CPMAddPackage(
 CPMAddPackage(
   NAME cxxopts
   GITHUB_REPOSITORY jarro2783/cxxopts
-  VERSION 3.1.1
+  VERSION 3.3.1
   OPTIONS "CXXOPTS_BUILD_EXAMPLES OFF"
           "CXXOPTS_BUILD_TESTS OFF")
 
 CPMAddPackage(
   NAME nlohmann_json
-  VERSION 3.11.3
+  VERSION 3.12.0
   # the git repo is incredibly large, so we download the archived include directory
-  URL https://github.com/nlohmann/json/releases/download/v3.11.3/include.zip
-  URL_HASH SHA256=a22461d13119ac5c78f205d3df1db13403e58ce1bb1794edc9313677313f4a9d)
+  URL https://github.com/nlohmann/json/releases/download/v3.12.0/include.zip
+  URL_HASH SHA256=b8cb0ef2dd7f57f18933997c9934bb1fa962594f701cd5a8d3c2c80541559372)
 
 if (nlohmann_json_ADDED)
   add_library(nlohmann_json INTERFACE IMPORTED)
@@ -490,7 +490,7 @@ endif()
 CPMAddPackage(
   NAME minizip
   GITHUB_REPOSITORY zlib-ng/minizip-ng
-  GIT_TAG 4.0.4
+  GIT_TAG 4.0.10
   OPTIONS "MZ_FETCH_LIBS OFF"
           "MZ_BZIP2 OFF"
           "MZ_LZMA OFF"
@@ -509,7 +509,7 @@ if (MSVC)
   CPMAddPackage(
     NAME mimalloc
     GITHUB_REPOSITORY microsoft/mimalloc
-    VERSION 2.1.7
+    VERSION 2.2.4
     OPTIONS "MI_OVERRIDE ON"
             "MI_BUILD_TESTS OFF"
             "MI_BUILD_OBJECT OFF"
@@ -540,6 +540,7 @@ target_include_directories(je2be PUBLIC
 target_include_directories(je2be PRIVATE ./src ${libdeflate_SOURCE_DIR} ${libminecraft-file_SOURCE_DIR}/include ${defer_SOURCE_DIR}/include)
 target_link_libraries(je2be INTERFACE ${je2be_link_libraries})
 target_link_directories(je2be INTERFACE ${je2be_link_directories})
+target_compile_definitions(je2be PUBLIC -DXXH_NAMESPACE=LZ4_)
 
 add_executable(j2b example/j2b.cpp ${je2be_header_files})
 target_link_libraries(j2b ${je2be_exe_link_libraries} cxxopts)
