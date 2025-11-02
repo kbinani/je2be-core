@@ -959,7 +959,7 @@ private:
     AddProperty(c, u8"minecraft:is_becoming_statue", Bool(false));
 
     auto nextWeatherAgeJ = tag.int64(u8"next_weather_age", -1);
-    if (nextWeatherAgeJ == 2) {
+    if (nextWeatherAgeJ == -2) {
       AddProperty(c, u8"minecraft:is_waxed", Bool(true));
       AddDefinition(c, u8"-minecraft:copper_oxidizing");
       AddDefinition(c, u8"-minecraft:becoming_statue");
