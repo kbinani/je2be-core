@@ -313,7 +313,7 @@ public:
       // allowFireTicksAwayFromPlayer
       // announceAdvancements
       S(commandBlockOutput, ret.fCommandBlockOutput);
-      S(commandBlocksEnabled‌, ret.fCommandblocksEnabled);
+      S(commandBlocksEnabled, ret.fCommandblocksEnabled);
       // disableElytraMovementCheck
       // disableRaids
       S(doDaylightCycle, ret.fDoDaylightCycle);
