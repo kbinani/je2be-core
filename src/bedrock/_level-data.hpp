@@ -142,7 +142,7 @@ public:
     CompoundTag &j = *data;
 
     CopyStringValues(b, j, {{u8"LevelName"}});
-    CopyIntValues(b, j, {{u8"SpawnX"}, {u8"SpawnY"}, {u8"SpawnZ"}, {u8"rainTime"}, {u8"lightningTime", u8"thunderTime"}});
+    CopyIntValues(b, j, {{u8"rainTime"}, {u8"lightningTime", u8"thunderTime"}});
     CopyBoolValues(b, j, {{u8"commandsEnabled", u8"allowCommands", false}, {u8"IsHardcore", u8"hardcore"}});
     CopyLongValues(b, j, {{u8"Time", u8"DayTime"}, {u8"currentTick", u8"Time"}});
 
@@ -167,6 +167,18 @@ public:
         ctx.setShoulderEntityRight(*playerData->fShoulderEntityRight);
       }
       j[u8"Player"] = playerData->fEntity;
+    }
+
+    auto spawnX = b.int32(u8"SpawnX");
+    auto spawnY = b.int32(u8"SpawnY");
+    auto spawnZ = b.int32(u8"SpawnZ");
+    if (spawnX && spawnY && spawnZ) {
+      auto spawnJ = Compound();
+      spawnJ->set(u8"dimension", String(u8"minecraft:overworld"));
+      spawnJ->set(u8"pos", IntArrayFromPos3i(Pos3i(*spawnX, *spawnY, *spawnZ)));
+      spawnJ->set(u8"pitch", Float(0));
+      spawnJ->set(u8"yaw", Float(0));
+      j[u8"spawn"] = spawnJ;
     }
 
     auto root = Compound();

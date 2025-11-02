@@ -288,9 +288,6 @@ public:
     I(fTime, int64, u8"DayTime");
     I(fDifficulty, byte, u8"Difficulty");
     I(fLevelName, string, u8"LevelName");
-    I(fSpawnX, int32, u8"SpawnX");
-    I(fSpawnY, int32, u8"SpawnY");
-    I(fSpawnZ, int32, u8"SpawnZ");
     I(fCurrentTick, int64, u8"Time");
     I(fLimitedWorldOriginX, float64, u8"BorderCenterX");
     I(fLimitedWorldOriginZ, float64, u8"BorderCenterZ");
@@ -400,6 +397,18 @@ public:
           ret.fExperiments[u8"villager_trades_rebalance"] = true;
         }
       }
+    }
+
+    if (auto spawn = data->compoundTag(u8"spawn"); spawn) {
+      if (auto pos = props::GetPos3iFromIntArrayTag(*spawn, u8"pos"); pos) {
+        ret.fSpawnX = pos->fX;
+        ret.fSpawnY = pos->fY;
+        ret.fSpawnZ = pos->fZ;
+      }
+    } else {
+      ret.fSpawnX = data->int32(u8"SpawnX", ret.fSpawnX);
+      ret.fSpawnY = data->int32(u8"SpawnY", ret.fSpawnY);
+      ret.fSpawnZ = data->int32(u8"SpawnZ", ret.fSpawnZ);
     }
 
     return ret;
