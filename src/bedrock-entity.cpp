@@ -1109,7 +1109,6 @@ public:
 
   static void Zombie(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"DrownedConversionTime"] = Int(-1);
-    j[u8"CanBreakDoors"] = Bool(HasDefinition(b, u8"+minecraft:can_break_doors"));
     j[u8"InWaterTime"] = Int(-1);
   }
 
@@ -1292,6 +1291,10 @@ public:
 
   static void Bred(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     j[u8"Bred"] = Bool(false);
+  }
+
+  static void CanBreakDoors(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    j[u8"CanBreakDoors"] = Bool(HasDefinition(b, u8"+minecraft:can_break_doors"));
   }
 
   static void CanJoinRaid(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -2492,7 +2495,7 @@ public:
     E(spider, C(Same, LivingEntity));
     E(bat, C(Same, LivingEntity, Bat));
     E(painting, C(Same, Base, Painting));
-    E(zombie, C(Same, LivingEntity, IsBaby, Zombie));
+    E(zombie, C(Same, LivingEntity, IsBaby, CanBreakDoors, Zombie));
     E(chicken, C(Same, Animal, ClimateVariant, Chicken));
     E(item, C(Same, Base, Impl::Item));
     E(armor_stand, C(Same, Base, AbsorptionAmount, ArmorItems, Brain, DeathTime, FallFlying, HandItems, Health, HurtByTimestamp, HurtTime, ArmorStand));
@@ -2505,7 +2508,7 @@ public:
     E(salmon, C(Same, LivingEntity, FromBucket, Salmon));
     E(parrot, C(Same, Animal, Sitting, CopyVariant));
     E(enderman, C(Same, LivingEntity, AngerTime, Enderman));
-    E(zombie_pigman, C(Rename(u8"zombified_piglin"), LivingEntity, AngerTime, IsBaby, Zombie, ZombifiedPiglin));
+    E(zombie_pigman, C(Rename(u8"zombified_piglin"), LivingEntity, AngerTime, IsBaby, CanBreakDoors, Zombie, ZombifiedPiglin));
     E(bee, C(Same, Animal, AngerTime, NoGravity, Bee));
     E(blaze, C(Same, LivingEntity));
     E(cow, C(Same, Animal, ClimateVariant));
@@ -2515,11 +2518,11 @@ public:
     E(pig, C(Same, Animal, Saddle, ClimateVariant));
     E(zoglin, C(Same, LivingEntity, IsBaby));
     E(horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, HealthWithCustomizedMax, JumpStrength, MovementSpeed, BodyEquipmentFromArmorItems, Horse));
-    E(husk, C(Same, LivingEntity, IsBaby, Zombie));
+    E(husk, C(Same, LivingEntity, IsBaby, CanBreakDoors, Zombie));
     E(sheep, C(Same, Animal, Sheep));
     E(cave_spider, C(Same, LivingEntity));
     E(donkey, C(Same, Animal, Bred, ChestedHorse, EatingHaystack, ItemsWithSaddleItem, Tame, Temper, HealthWithCustomizedMax, MovementSpeed));
-    E(drowned, C(Same, LivingEntity, IsBaby, Zombie));
+    E(drowned, C(Same, LivingEntity, IsBaby, CanBreakDoors, Zombie));
     E(endermite, C(Same, LivingEntity, Endermite));
     E(evocation_illager, C(Rename(u8"evoker"), LivingEntity, CanJoinRaid, PatrolLeader, Patrolling, Wave, Evoker));
     E(cat, C(Same, Animal, CollarColor, Sitting, Cat));
@@ -2550,7 +2553,7 @@ public:
     E(wandering_trader, C(Same, LivingEntity, Age, Inventory, Offers, WanderingTrader));
     E(wolf, C(Same, Animal, AngerTime, CollarColor, Sitting, BodyEquipmentFromArmorItems, Wolf));
     E(zombie_horse, C(Same, Animal, Bred, EatingHaystack, Tame, Temper, JumpStrength, MovementSpeed));
-    E(zombie_villager_v2, C(Rename(u8"zombie_villager"), LivingEntity, IsBaby, ConversionTime, Offers, Zombie, Villager));
+    E(zombie_villager_v2, C(Rename(u8"zombie_villager"), LivingEntity, IsBaby, ConversionTime, Offers, CanBreakDoors, Zombie, Villager));
     E(snow_golem, C(Same, LivingEntity, SnowGolem));
     E(shulker, C(Same, LivingEntity, Shulker));
     E(wither_skeleton, C(Same, LivingEntity));

@@ -597,7 +597,7 @@ private:
     E(creeper, C(Monster, Creeper));
     E(dolphin, C(Animal, AgeableA(u8"dolphin")));
     E(donkey, C(Animal, TameableB(u8"donkey"), AgeableA(u8"minecraft:donkey"), ChestedHorse(u8"donkey"), Steerable(u8"donkey", {.fAddAlwaysUnsaddledDefinition = false}), Temper));
-    E(drowned, C(Monster, AgeableD(u8"drowned"), Zombie, Drowned));
+    E(drowned, C(Monster, AgeableD(u8"drowned"), CanBreakDoors, Drowned));
     E(elder_guardian, C(Monster, ElderGuardian));
     E(enderman, C(Monster, Enderman));
     E(endermite, C(Monster, Endermite));
@@ -651,11 +651,11 @@ private:
     M(wither_skeleton);
     E(wolf, C(Animal, TameableA(u8"wolf"), AgeableA(u8"minecraft:wolf"), Sittable, CollarColorable, Wolf));
     M(zoglin);
-    E(zombie, C(Monster, AgeableB(u8"zombie"), Definitions({u8"+minecraft:can_have_equipment"}), Zombie));
+    E(zombie, C(Monster, AgeableB(u8"zombie"), Definitions({u8"+minecraft:can_have_equipment"}), CanBreakDoors));
 
     E(zombie_horse, C(Monster, AgeableA(u8"minecraft:horse")));
     E(zombie_villager, C(Animal, Rename(u8"zombie_villager_v2"), Offers(4, u8"persistingOffers"), Villager, ZombieVillager));
-    E(zombified_piglin, C(Monster, Rename(u8"zombie_pigman"), AgeableB(u8"pig_zombie"), ZombiePigman));
+    E(zombified_piglin, C(Monster, Rename(u8"zombie_pigman"), AgeableB(u8"pig_zombie"), CanBreakDoors, ZombiePigman));
 
     E(boat, C(EntityBase, Vehicle(), Impl::Boat(u8"boat")));                                  // legacy
     E(chest_boat, C(EntityBase, Vehicle(), ChestItemsFromItems, Impl::Boat(u8"chest_boat"))); // legacy
@@ -1836,12 +1836,6 @@ private:
     }
   }
 
-  static void Zombie(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
-    if (tag.boolean(u8"CanBreakDoors", false)) {
-      AddDefinition(c, u8"+minecraft:can_break_doors");
-    }
-  }
-
   static void ZombiePigman(CompoundTag &tagB, CompoundTag const &tagJ, ConverterContext &ctx) {
     auto angryAt = props::GetUuid(tagJ, {.fIntArray = u8"AngryAt"});
     if (angryAt) {
@@ -1906,6 +1900,12 @@ private:
   static void AttackTime(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
     auto attackTick = tag.int32(u8"AttackTick", 0);
     c[u8"AttackTime"] = Short(attackTick);
+  }
+
+  static void CanBreakDoors(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
+    if (tag.boolean(u8"CanBreakDoors", false)) {
+      AddDefinition(c, u8"+minecraft:can_break_doors");
+    }
   }
 
   static void CanJoinRaid(CompoundTag &c, CompoundTag const &tag, ConverterContext &) {
