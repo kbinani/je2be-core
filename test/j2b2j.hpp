@@ -1174,7 +1174,7 @@ static void CheckSectionLightJ(Pos3i const &origin, std::vector<uint8_t> &e, std
     if (!ok) {
       lock_guard<mutex> lock(sMutCerr);
       cerr << "-------------------------------------------------------------------------------------------------------------------" << endl;
-      cerr << kind << " " << JavaStringFromDimension(dim) << endl;
+      cerr << kind << " " << JavaStringFromDimension(dim) << " (ex. [e, a])" << endl;
       fprintf(stderr, "%4d", origin.fY + y);
       for (int x = 0; x < 16; x++) {
         fprintf(stderr, "%6d ", x + origin.fX);

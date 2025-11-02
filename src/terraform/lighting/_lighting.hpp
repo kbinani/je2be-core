@@ -4,6 +4,7 @@
 
 #include "_data2d.hpp"
 #include "_data3d.hpp"
+#include "_java-data-versions.hpp"
 #include "_optional.hpp"
 #include "enums/_facing4.hpp"
 #include "enums/_facing6.hpp"
@@ -39,7 +40,19 @@ public:
     Data2d<bool> skyCached({cx - 1, cz - 1}, 3, 3, false);
     Data2d<optional<Volume>> skyDiffuseVolumes({cx - 1, cz - 1}, 3, 3, nullopt);
 
-    if (dim == Dimension::Overworld) {
+    /*
+    The end has sky light:
+      yes:
+        1.21.10
+        25w35a
+        25w33a
+      no:
+        25w32a
+        25w31a
+     */
+    int dataVersion = out.getDataVersion();
+    if ((dataVersion >= (int)JavaDataVersions::Snapshot25w33a && dim != Dimension::Nether) //
+        || (dataVersion < (int)JavaDataVersions::Snapshot25w33a && dim == Dimension::Overworld)) {
       skyLight = make_shared<Data3dSq<u8, 44>>(chunkOrigin, height, 0);
 
       for (int dz = -1; dz <= 1; dz++) {
