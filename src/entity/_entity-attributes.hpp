@@ -210,9 +210,9 @@ public:
     return attrs;
   }
 
-  static Attributes HappyGhast(bool isBaby) {
+  static Attributes HappyGhast(bool isBaby, std::optional<float> currentHealth) {
     float movement = isBaby ? 0.3 : 0.016;
-    return Attributes(
+    Attributes attributes(
         Attribute(20, 20, 20),         // health(base, current, max)
         Attribute(0, 0, 1),            // knockback_resistance
         Attribute(movement, movement), // movement
@@ -220,6 +220,40 @@ public:
         Attribute(0.02, 0.02),         // lava_movement
         Attribute(16, 16, 16),         // follow_range
         std::nullopt);                 // attack_damage
+    if (currentHealth) {
+      attributes.health.updateCurrent(*currentHealth);
+    }
+    return attributes;
+  }
+
+  static Attributes ZombieAndZombieVillager(bool isBaby, std::optional<float> currentHealth) {
+    float movement = isBaby ? 0.35 : 0.23;
+    Attributes attributes(Attribute(20, 20, 20),         // health(base, current, max)
+                          Attribute(0, 0, 1),            // knockback_resistance
+                          Attribute(movement, movement), // movement
+                          Attribute(0.02, 0.02),         // underwater_movement
+                          Attribute(0.02, 0.02),         // lava_movement
+                          Attribute(16, 16, 2048),       // follow_range
+                          Attribute(3, 3, 3));           // attack_damage
+    if (currentHealth) {
+      attributes.health.updateCurrent(*currentHealth);
+    }
+    return attributes;
+  }
+
+  static Attributes Hoglin(bool isBaby, std::optional<float> currentHealth) {
+    float movement = isBaby ? 0.36 : 0.3;
+    Attributes attributes(Attribute(40, 40, 40),         // health(base, current, max)
+                          Attribute(0.5, 0.5, 1),        // knockback_resistance
+                          Attribute(movement, movement), // movement
+                          Attribute(0.02, 0.02),         // underwater_movement
+                          Attribute(0.02, 0.02),         // lava_movement
+                          Attribute(16, 16, 2048),       // follow_range
+                          Attribute(3, 3, 3));           // attack_damage
+    if (currentHealth) {
+      attributes.health.updateCurrent(*currentHealth);
+    }
+    return attributes;
   }
 
 private:
@@ -253,7 +287,6 @@ private:
     table->insert(make_pair(u8"minecraft:fox", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(2, 2, 2))));
     table->insert(make_pair(u8"minecraft:ghast", Attributes(Attribute(10, 10, 10), Attribute(0, 0, 1), Attribute(0.03, 0.03), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 64), nullopt)));
     table->insert(make_pair(u8"minecraft:guardian", Attributes(Attribute(30, 30, 30), Attribute(0, 0, 1), Attribute(0.12, 0.12), Attribute(0.12, 0.12), Attribute(0.02, 0.02), Attribute(16, 16, 16), Attribute(5, 5, 5))));
-    table->insert(make_pair(u8"minecraft:hoglin", Attributes(Attribute(40, 40, 40), Attribute(0.5, 0.5, 1), Attribute(0.3, 0.3), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
     table->insert(make_pair(u8"minecraft:husk", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
     table->insert(make_pair(u8"minecraft:iron_golem", Attributes(Attribute(100, 100, 100), Attribute(1, 1, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), Attribute(7, 7, 7))));
     Attributes llama(Attribute(27, 27, 27), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(40, 40, 40), nullopt);
@@ -299,9 +332,7 @@ private:
     table->insert(make_pair(u8"minecraft:witch", Attributes(Attribute(26, 26, 26), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(64, 64, 2048), nullopt)));
     table->insert(make_pair(u8"minecraft:wither_skeleton", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(4, 4, 4))));
     table->insert(make_pair(u8"minecraft:zoglin", Attributes(Attribute(40, 40, 40), Attribute(0.5, 0.5, 1), Attribute(0.25, 0.25), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
-    table->insert(make_pair(u8"minecraft:zombie", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
     table->insert(make_pair(u8"minecraft:zombified_piglin", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(5, 5, 5))));
-    table->insert(make_pair(u8"minecraft:zombie_villager", Attributes(Attribute(20, 20, 20), Attribute(0, 0, 1), Attribute(0.23, 0.23), Attribute(0.02, 0.02), Attribute(0.02, 0.02), Attribute(16, 16, 2048), Attribute(3, 3, 3))));
 
     // 1.17
     table->insert(make_pair(u8"minecraft:glow_squid", squid));

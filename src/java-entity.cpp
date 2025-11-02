@@ -651,7 +651,7 @@ private:
     M(wither_skeleton);
     E(wolf, C(Animal, TameableA(u8"wolf"), AgeableA(u8"minecraft:wolf"), Sittable, CollarColorable, Wolf));
     M(zoglin);
-    E(zombie, C(Monster, AgeableB(u8"zombie"), Definitions({u8"+minecraft:can_have_equipment"}), CanBreakDoors));
+    E(zombie, C(Monster, AgeableB(u8"zombie"), Definitions({u8"+minecraft:can_have_equipment"}), CanBreakDoors, Zombie));
 
     E(zombie_horse, C(Monster, AgeableA(u8"minecraft:horse")));
     E(zombie_villager, C(Animal, Rename(u8"zombie_villager_v2"), Offers(4, u8"persistingOffers"), Villager, ZombieVillager));
@@ -1188,16 +1188,21 @@ private:
       AddDefinition(b, u8"+minecraft:baby");
     }
     AddProperty(b, u8"minecraft:can_move", Bool(true));
-    auto attributes = EntityAttributes::HappyGhast(age < 0);
+    auto attributes = EntityAttributes::HappyGhast(age < 0, j.float32(u8"Health"));
     b[u8"Attributes"] = attributes.toBedrockListTag();
     Leash(j, b, ctx);
   }
 
   static void Hoglin(CompoundTag &b, CompoundTag const &j, ConverterContext &ctx) {
-    AddDefinition(b, u8"+huntable_adult");
+    auto age = j.int16(u8"Age", 0);
+    if (age >= 0) {
+      AddDefinition(b, u8"+huntable_adult");
+    }
     if (j.boolean(u8"CannotBeHunted", false)) {
       AddDefinition(b, u8"-angry_hoglin");
     }
+    auto attributes = EntityAttributes::Hoglin(age < 0, j.float32(u8"Health"));
+    b[u8"Attributes"] = attributes.toBedrockListTag();
   }
 
   static void Horse(CompoundTag &b, CompoundTag const &j, ConverterContext &ctx) {
@@ -1830,6 +1835,11 @@ private:
     }
   }
 
+  static void Zombie(CompoundTag &b, CompoundTag const &j, ConverterContext &ctx) {
+    auto attributes = EntityAttributes::ZombieAndZombieVillager(j.boolean(u8"IsBaby", false), j.float32(u8"Health"));
+    b[u8"Attributes"] = attributes.toBedrockListTag();
+  }
+
   static void ZombiePigman(CompoundTag &tagB, CompoundTag const &tagJ, ConverterContext &ctx) {
     auto angryAt = props::GetUuid(tagJ, {.fIntArray = u8"AngryAt"});
     if (angryAt) {
@@ -1845,11 +1855,13 @@ private:
     }
   }
 
-  static void ZombieVillager(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
-    auto offers = tag.compoundTag(u8"Offers");
+  static void ZombieVillager(CompoundTag &b, CompoundTag const &j, ConverterContext &ctx) {
+    auto offers = j.compoundTag(u8"Offers");
     if (offers) {
-      c[u8"Persistent"] = Bool(true);
+      b[u8"Persistent"] = Bool(true);
     }
+    auto attributes = EntityAttributes::ZombieAndZombieVillager(j.boolean(u8"IsBaby", false), j.float32(u8"Health"));
+    b[u8"Attributes"] = attributes.toBedrockListTag();
   }
 #pragma endregion
 
