@@ -704,7 +704,7 @@ private:
     table->try_emplace(u8"bamboo_raft", C(EntityBase, Vehicle(), TypedBoat(u8"boat", u8"bamboo")));
     table->try_emplace(u8"bamboo_chest_raft", C(EntityBase, Vehicle(), ChestItemsFromItems, TypedBoat(u8"chest_boat", u8"bamboo")));
 
-    E(happy_ghast, C(Monster, HappyGhast));
+    E(happy_ghast, C(Animal, HappyGhast));
 
     E(copper_golem, C(Mob, CopperGolem));
 #undef A
@@ -1168,7 +1168,6 @@ private:
   }
 
   static void HappyGhast(CompoundTag &b, CompoundTag const &j, ConverterContext &ctx) {
-    AddDefinition(b, u8"+minecraft:happy_ghast");
     auto age = j.int32(u8"Age", 0);
     b[u8"Age"] = Int(age);
     if (age >= 0) {
@@ -1190,7 +1189,6 @@ private:
     AddProperty(b, u8"minecraft:can_move", Bool(true));
     auto attributes = EntityAttributes::HappyGhast(age < 0, j.float32(u8"Health"));
     b[u8"Attributes"] = attributes.toBedrockListTag();
-    Leash(j, b, ctx);
   }
 
   static void Hoglin(CompoundTag &b, CompoundTag const &j, ConverterContext &ctx) {
