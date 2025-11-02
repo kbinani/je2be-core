@@ -1603,7 +1603,7 @@ static void TestJavaToBedrockToJava(fs::path in) {
     chunks.insert({cx, 0});
   }
 #else
-  Pos2i center(29, 0);
+  Pos2i center(30, 0);
   int radius = 0;
   for (int cz = center.fZ - radius; cz <= center.fZ + radius; cz++) {
     for (int cx = center.fX - radius; cx <= center.fX + radius; cx++) {
