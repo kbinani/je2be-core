@@ -824,6 +824,7 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
   } else if (id == u8"minecraft:piglin") {
     blacklist.insert(u8"TimeInOverworld");
     blacklist.insert(u8"IsBaby");
+    blacklist.insert(u8"ticks_since_last_hurt_by_mob");
     CHECK(copyE->boolean(u8"IsBaby", false) == copyA->boolean(u8"IsBaby", false));
   } else if (id == u8"minecraft:piglin_brute") {
     blacklist.insert(u8"TimeInOverworld");

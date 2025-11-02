@@ -731,10 +731,6 @@ public:
   static void Hoglin(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto cannotBeHunted = HasDefinition(b, u8"-angry_hoglin");
     j[u8"CannotBeHunted"] = Bool(cannotBeHunted);
-    if (auto uuidB = b.int64(u8"TargetID"); uuidB && *uuidB != -1) {
-      auto uuidJ = Uuid::GenWithI64Seed(*uuidB);
-      j[u8"last_hurt_by_mob"] = uuidJ.toIntArrayTag();
-    }
   }
 
   static void Horse(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -1579,6 +1575,13 @@ public:
     (*attr)[u8"base"] = Double(*jumpStrength);
     (*attr)[u8"id"] = String(name);
     AddAttribute(attr, j);
+  }
+
+  static void LastHurtByMob(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
+    if (auto uuidB = b.int64(u8"TargetID"); uuidB && *uuidB != -1) {
+      auto uuidJ = Uuid::GenWithI64Seed(*uuidB);
+      j[u8"last_hurt_by_mob"] = uuidJ.toIntArrayTag();
+    }
   }
 
   static void Minecart(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
@@ -2563,9 +2566,9 @@ public:
     E(goat, C(Same, Animal, Goat));
     E(axolotl, C(Same, Animal, FromBucket, Axolotl));
     E(wither, C(Same, LivingEntity, Wither));
-    E(piglin, C(Same, LivingEntity, Inventory, IsBaby, IsImmuneToZombification, Piglin));
+    E(piglin, C(Same, LivingEntity, Inventory, IsBaby, IsImmuneToZombification, LastHurtByMob, Piglin));
     E(piglin_brute, C(Same, LivingEntity, IsImmuneToZombification, PiglinBrute));
-    E(hoglin, C(Same, Animal, IsImmuneToZombification, Hoglin));
+    E(hoglin, C(Same, Animal, IsImmuneToZombification, LastHurtByMob, Hoglin));
     E(arrow, C(Same, Base, Owner, Arrow));
     E(ender_dragon, C(Same, LivingEntity, EnderDragon));
     E(falling_block, C(Same, Base, FallingBlock));

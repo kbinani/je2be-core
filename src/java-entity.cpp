@@ -606,7 +606,7 @@ private:
     E(fox, C(Animal, AgeableA(u8"minecraft:fox"), Fox));
     M(ghast);
     M(guardian);
-    E(hoglin, C(Animal, AgeableA(u8"minecraft:hoglin"), ZombificationSensor, Hoglin));
+    E(hoglin, C(Animal, AgeableA(u8"minecraft:hoglin"), ZombificationSensor, LastHurtByMob, Hoglin));
     E(horse, C(Animal, TameableB(u8"horse"), AgeableA(u8"minecraft:horse"), Temper, Horse));
     E(husk, C(Monster, AgeableB(u8"zombie_husk")));
     E(llama, C(Animal, AgeableA(u8"minecraft:llama"), TameableB(u8"llama"), ChestedHorse(u8"llama"), Definitions({u8"+minecraft:strength_3"}), Llama));
@@ -619,7 +619,7 @@ private:
     E(parrot, C(Animal, TameableA(u8"parrot"), Sittable, Parrot));
     M(phantom);
     E(pig, C(Animal, AgeableA(u8"minecraft:pig"), Steerable(u8"pig", {.fAddAlwaysUnsaddledDefinition = true}), ClimateVariant));
-    E(piglin, C(Monster, ChestItemsFromInventory, ZombificationSensor, Piglin));
+    E(piglin, C(Monster, ChestItemsFromInventory, ZombificationSensor, LastHurtByMob, Piglin));
     E(piglin_brute, C(Monster, ZombificationSensor, PiglinBrute));
     E(pillager, C(Monster, CanJoinRaid, ChestItemsFromInventory));
 
@@ -1197,12 +1197,6 @@ private:
     AddDefinition(b, u8"+huntable_adult");
     if (j.boolean(u8"CannotBeHunted", false)) {
       AddDefinition(b, u8"-angry_hoglin");
-    }
-    if (auto lastHurtByMob = j.intArrayTag(u8"last_hurt_by_mob"); lastHurtByMob) {
-      if (auto uuidJ = Uuid::FromIntArray(*lastHurtByMob); uuidJ) {
-        i64 uuidB = ctx.fCtx.fUuids->toId(*uuidJ);
-        b[u8"TargetID"] = Long(uuidB);
-      }
     }
   }
 
@@ -1994,6 +1988,15 @@ private:
     }
 
     c[u8"ChestItems"] = chestItems;
+  }
+
+  static void LastHurtByMob(CompoundTag &b, CompoundTag const &j, ConverterContext &ctx) {
+    if (auto lastHurtByMob = j.intArrayTag(u8"last_hurt_by_mob"); lastHurtByMob) {
+      if (auto uuidJ = Uuid::FromIntArray(*lastHurtByMob); uuidJ) {
+        i64 uuidB = ctx.fCtx.fUuids->toId(*uuidJ);
+        b[u8"TargetID"] = Long(uuidB);
+      }
+    }
   }
 
   static void PersistentFromFromBucket(CompoundTag &c, CompoundTag const &tag, ConverterContext &ctx) {
