@@ -852,6 +852,7 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     blacklist.insert(u8"shake");
     blacklist.insert(u8"inBlockState");
     blacklist.insert(u8"SoundEvent");
+    blacklist.insert(u8"weapon");
   } else if (id == u8"minecraft:falling_block") {
     blacklist.insert(u8"DropItem");
     blacklist.insert(u8"FallDistance");
