@@ -70,6 +70,21 @@ public:
     return armor;
   }
 
+  static bool IsRangedWeapon(std::u8string const &name) {
+    static std::unordered_set<std::u8string> const sWeapons = {u8"bow", u8"crossbow", u8"trident"};
+    return sWeapons.find(Namespace::Remove(name)) != sWeapons.end();
+  }
+
+  static bool IsMeleeWeapon(std::u8string const &name) {
+    if (name.ends_with(u8"_sword")) {
+      return true;
+    }
+    if (name.ends_with(u8"_axe")) {
+      return true;
+    }
+    return false;
+  }
+
 private:
   static CompoundTagPtr Convert(CompoundTagPtr const &in, Context &ctx, DataVersion const &dataVersion) {
     using namespace std;
@@ -2036,4 +2051,11 @@ CompoundTagPtr Item::Empty() {
   return Impl::Empty();
 }
 
+bool Item::IsRangedWeapon(std::u8string const &name) {
+  return Impl::IsRangedWeapon(name);
+}
+
+bool Item::IsMeleeWeapon(std::u8string const &name) {
+  return Impl::IsMeleeWeapon(name);
+}
 } // namespace je2be::java

@@ -631,7 +631,7 @@ private:
     E(sheep, C(Animal, AgeableA(u8"minecraft:sheep"), Colorable(u8"sheep"), Definitions({u8"+minecraft:sheep_dyeable", u8"+minecraft:rideable_wooly", u8"+minecraft:loot_wooly"}), Sheep));
     E(shulker, C(Monster, Shulker));
     M(silverfish);
-    M(skeleton); // lefty skeleton does not exist in Bedrock?
+    E(skeleton, C(Monster, RangedAttack)); // lefty skeleton does not exist in Bedrock?
 
     E(skeleton_horse, C(Animal, Definitions({u8"+minecraft:skeleton_horse_adult"}), SkeletonHorse));
     E(slime, C(Monster, Slime));
@@ -693,7 +693,7 @@ private:
     E(interaction, Null);
 
     E(armadillo, C(Animal, Definitions({u8"+minecraft:armadillo"}), AgeableG, Armadillo));
-    E(bogged, C(Monster, Definitions({u8"+minecraft:bogged", u8"+minecraft:ranged_attack"}), Bogged));
+    E(bogged, C(Monster, Definitions({u8"+minecraft:bogged"}), RangedAttack, Bogged));
     E(breeze, C(Monster, Definitions({u8"+minecraft:breeze"})));
 
     E(creaking, C(Monster, Definitions({u8"+minecraft:creaking"}), Creaking));
@@ -1013,7 +1013,7 @@ private:
     bool melee = true;
     if (auto handItems = tag.listTag(u8"HandItems"); handItems && !handItems->fValue.empty()) {
       if (auto item = handItems->fValue[0]->asCompound(); item) {
-        if (Item::Count(*item, 0) > 0 && item->string(u8"id") == u8"minecraft:trident") {
+        if (Item::Count(*item, 0) > 0 && Item::IsMeleeWeapon(item->string(u8"id", u8""))) {
           melee = false;
         }
       }
@@ -1444,10 +1444,10 @@ private:
     }
     if (itemInHand) {
       b.set(u8"ItemInHand", itemInHand);
-      auto name = itemInHand->string(u8"Name");
-      if (name == u8"minecraft:crossbow") {
+      auto name = itemInHand->string(u8"Name", u8"");
+      if (Item::IsRangedWeapon(name)) {
         AddDefinition(b, u8"+ranged_unit");
-      } else if (name == u8"minecraft:golden_sword") {
+      } else if (Item::IsMeleeWeapon(name)) {
         AddDefinition(b, u8"+melee_unit");
       }
     }
@@ -2018,6 +2018,24 @@ private:
     } else {
       auto persistenceRequired = tag.boolean(u8"PersistenceRequired", false);
       c[u8"Persistent"] = Bool(persistenceRequired);
+    }
+  }
+
+  static void RangedAttack(CompoundTag &b, CompoundTag const &j, ConverterContext &) {
+    auto mainHandB = b.listTag(u8"Mainhand");
+    if (!mainHandB) {
+      return;
+    }
+    if (mainHandB->size() < 1) {
+      return;
+    }
+    auto itemB = mainHandB->fValue[0]->asCompound();
+    if (!itemB) {
+      return;
+    }
+    auto name = itemB->string(u8"Name", u8"");
+    if (Item::IsRangedWeapon(name)) {
+      AddDefinition(b, u8"+minecraft:ranged_attack");
     }
   }
 

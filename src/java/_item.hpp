@@ -19,6 +19,8 @@ public:
   static CompoundTagPtr From(CompoundTagPtr const &item, Context &ctx, DataVersion const &dataVersion);
   static i8 GetSkullTypeFromBlockName(std::u8string_view const &name);
   static CompoundTagPtr Empty();
+  static bool IsRangedWeapon(std::u8string const &name);
+  static bool IsMeleeWeapon(std::u8string const &name);
 
   static std::optional<i32> Count(CompoundTag const &c) {
     if (auto count = c.int32(u8"count"); count) {
