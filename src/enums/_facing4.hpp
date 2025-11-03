@@ -149,4 +149,30 @@ static inline std::optional<Facing4> Facing4FromPos2i(Pos2i const &p) {
   }
 }
 
+static inline Facing4 Facing4ByRotatingLeft(Facing4 f) {
+  switch (f) {
+  case Facing4::North:
+    return Facing4::West;
+  case Facing4::East:
+    return Facing4::North;
+  case Facing4::South:
+    return Facing4::East;
+  case Facing4::West:
+    return Facing4::South;
+  }
+}
+
+static inline Facing4 Facing4ByRotatingRight(Facing4 f) {
+  switch (f) {
+  case Facing4::North:
+    return Facing4::East;
+  case Facing4::East:
+    return Facing4::South;
+  case Facing4::South:
+    return Facing4::West;
+  case Facing4::West:
+    return Facing4::North;
+  }
+}
+
 } // namespace je2be

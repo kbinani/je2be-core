@@ -7,6 +7,7 @@
 #include "_java-data-versions.hpp"
 #include "_namespace.hpp"
 #include "bedrock/_legacy-block.hpp"
+#include "block/_door.hpp"
 #include "block/_trial-spawner.hpp"
 #include "enums/_color-code-java.hpp"
 #include "enums/_facing4.hpp"
@@ -675,7 +676,11 @@ private:
   static String Door(String const &bName, CompoundTag const &s, Props &p, int outputDataVersion) {
     auto doorHingeBit = s.boolean(u8"door_hinge_bit", false);
     OpenFromOpenBit(s, p);
-    FacingFromCardinalDirectionMigratingDirectionNorth3East0South1West2(s, p);
+    if (auto cd = s.string(u8"minecraft:cardinal_direction"); cd) {
+      p[u8"facing"] = Door::JavaFacingFromBedrockCardinalDirection(*cd);
+    } else {
+      Facing4FromNorth3East0South1West2(s, p);
+    }
     HalfFromUpperBlockBit(s, p);
     p[u8"hinge"] = doorHingeBit ? u8"right" : u8"left";
     p[u8"powered"] = u8"false";
@@ -1945,14 +1950,6 @@ private:
       auto direction = s.int32(u8"direction", 0);
       Facing4 f4 = Facing4FromNorth2East3South0West1(direction);
       props[u8"facing"] = JavaNameFromFacing4(f4);
-    }
-  }
-
-  static void FacingFromCardinalDirectionMigratingDirectionNorth3East0South1West2(CompoundTag const &s, Props &props) {
-    if (auto cd = s.string(u8"minecraft:cardinal_direction"); cd) {
-      props[u8"facing"] = *cd;
-    } else {
-      Facing4FromNorth3East0South1West2(s, props);
     }
   }
 
