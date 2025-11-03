@@ -979,7 +979,7 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     CHECK(equipmentA);
     if (equipmentA) {
       CHECK(equipmentA->size() == equipmentE->size());
-      for (auto it : *equipmentE) {
+      for (auto const &it : *equipmentE) {
         auto key = it.first;
         auto valueE = it.second->asCompound();
         REQUIRE(valueE);
@@ -989,7 +989,11 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
           auto valueA = foundA->second->asCompound();
           CHECK(valueA);
           if (valueA) {
-            CheckItemJ(*valueE, *valueA);
+            if (key == u8"head" && id == u8"minecraft:skeleton" && valueE->string(u8"id") == u8"minecraft:jack_o_lantern") {
+              CHECK(valueA->string(u8"id") == u8"minecraft:carved_pumpkin");
+            } else {
+              CheckItemJ(*valueE, *valueA);
+            }
           }
         }
       }

@@ -2950,6 +2950,13 @@ private:
       }
       if (helmet) {
         if (auto converted = Item::From(helmet, ctx.fCtx, ctx.fDataVersion); converted) {
+          // Replace lit_pumpkin with carved_pumpkin since Bedrock skeletons can't equip it.
+          if (id == u8"minecraft:skeleton" && converted->string(u8"Name") == u8"minecraft:lit_pumpkin") {
+            converted->set(u8"Name", String(u8"minecraft:carved_pumpkin"));
+            if (auto block = converted->compoundTag(u8"Block"); block) {
+              block->set(u8"name", String(u8"minecraft:carved_pumpkin"));
+            }
+          }
           armors->fValue[3] = converted;
         }
       }
