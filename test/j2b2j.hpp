@@ -251,48 +251,32 @@ static void CheckText(std::u8string const &e, std::u8string const &a, bool unquo
   }
 }
 
-static void CheckTextComponent(shared_ptr<Tag> const &e, shared_ptr<Tag> const &a) {
-  static auto getText = [](shared_ptr<Tag> const &tag) -> optional<u8string> {
-    if (auto text = tag->asString(); text) {
-      auto json = props::ParseAsJson(text->fValue);
-      if (json) {
-        if (auto found = json->find("text"); found != json->end() && found->is_string()) {
-          auto str = found->get<string>();
-          return std::u8string((char8_t const *)str.c_str(), str.size());
-        } else {
-          return std::nullopt;
-        }
-      } else {
-        return text->fValue;
-      }
-    } else if (auto compound = tag->asCompound(); compound) {
-      return compound->string(u8"text");
-    } else {
-      return nullopt;
-    }
-  };
-  auto textE = getText(e);
-  auto textA = getText(a);
-  CHECK(textE == textA);
-}
-
-static void CheckItemName(CompoundTag const &expected, CompoundTag const &actual, u8string const &key) {
-  if (auto e = expected.query(key)->asString(); e) {
-    auto a = actual.query(key)->asString();
-    CHECK((bool)a);
-    if (!a) {
-      return;
-    }
-    bool unquote = key != u8"CustomName";
-    CheckText(e->fValue, e->fValue, unquote);
-  } else if (auto e = expected.query(key)->asCompound(); e) {
-    auto a = actual.query(key)->asCompound();
-    CHECK((bool)a);
-    if (!a) {
-      return;
-    }
-    DiffCompoundTag(*e, *a);
+static optional<u8string> GetTextComponentJ(Tag const *tag) {
+  if (!tag) {
+    return nullopt;
   }
+  if (auto str = tag->asString(); str) {
+    if (auto j = props::ParseAsJson(str->fValue); j) {
+      if (auto text = j->find("text"); text != j->end() && text->is_string()) {
+        auto s = text->get<string>();
+        u8string s8;
+        s8.assign((char8_t const *)s.c_str(), s.size());
+        return s8;
+      }
+    }
+    return strings::Unquote(str->fValue);
+  } else if (auto c = tag->asCompound(); c) {
+    if (auto text = c->string(u8"text"); text) {
+      return *text;
+    }
+  }
+  return nullopt;
+};
+
+static void CheckItemNameJ(CompoundTag const &expected, CompoundTag const &actual, u8string const &key) {
+  auto textE = GetTextComponentJ(expected.query(key));
+  auto textA = GetTextComponentJ(actual.query(key));
+  CHECK(textE == textA);
 }
 
 static void RemoveEmpty(CompoundTag &t) {
@@ -372,7 +356,7 @@ static void CheckItemJ(CompoundTag const &itemE, CompoundTag const &itemA) {
   static set<u8string> const sJsonKeys = {u8"components/minecraft:custom_name", u8"components/minecraft:item_name"};
   for (u8string const &key : sJsonKeys) {
     blacklist.insert(key);
-    CheckItemName(itemE, itemA, key);
+    CheckItemNameJ(itemE, itemA, key);
   }
 
   auto itemsE = itemE.query(u8"components/minecraft:container")->asList();
@@ -434,9 +418,9 @@ static void CheckSignTextLinesJ(CompoundTag const &e, CompoundTag const &a) {
     CHECK(messagesA);
     CHECK(messagesE->size() == messagesA->size());
     for (size_t i = 0; i < messagesE->size(); i++) {
-      auto lineE = messagesE->at(i);
-      auto lineA = messagesA->at(i);
-      CheckTextComponent(lineE, lineA);
+      auto lineE = GetTextComponentJ(messagesE->at(i).get());
+      auto lineA = GetTextComponentJ(messagesA->at(i).get());
+      CHECK(lineE == lineA);
     }
   }
   auto copyE = e.copy();
@@ -521,7 +505,7 @@ static void CheckTileEntityJ(CompoundTag const &expected, CompoundTag const &act
   static set<u8string> const sJsonKeys = {u8"components/minecraft:custom_name", u8"components/minecraft:item_name", u8"CustomName"};
   for (u8string const &key : sJsonKeys) {
     tagBlacklist.insert(key);
-    CheckItemName(expected, actual, key);
+    CheckItemNameJ(expected, actual, key);
   }
   for (auto const &key : {u8"back_text", u8"front_text"}) {
     auto backTextE = expected.compoundTag(key);
@@ -902,7 +886,7 @@ static void CheckEntityJ(std::u8string const &id, CompoundTag const &entityE, Co
     blacklist.insert(u8"TreasurePosZ");
   }
 
-  CheckItemName(entityE, entityA, u8"CustomName");
+  CheckItemNameJ(entityE, entityA, u8"CustomName");
   blacklist.insert(u8"CustomName");
 
   CheckUuidJ(entityE, entityA, u8"last_hurt_by_mob");
