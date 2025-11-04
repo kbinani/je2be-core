@@ -284,9 +284,13 @@ static std::u8string GetTextComponent(std::u8string const &in) {
     auto extra = json->find("extra");
     if (extra != json->end() && extra->is_array()) {
       for (auto it = extra->begin(); it != extra->end(); it++) {
-        auto t = it->find("text");
-        if (t != it->end() && t->is_string()) {
-          ret += props::GetJsonStringValue(*t);
+        if (it->is_string()) {
+          ret += props::GetTextComponent(props::GetJsonStringValue(*it));
+        } else if (it->is_object()) {
+          auto t = it->find("text");
+          if (t != it->end() && t->is_string()) {
+            ret += props::GetJsonStringValue(*t);
+          }
         }
       }
     }
