@@ -1056,10 +1056,10 @@ private:
           std::u8string pageContent;
           if (auto pageCompound = it->asCompound(); pageCompound) {
             if (auto raw = pageCompound->string(u8"raw"); raw) {
-              pageContent = *raw;
+              pageContent = strings::Unquote(*raw);
             }
           } else if (auto pageString = it->asString(); pageString) {
-            pageContent = pageString->fValue;
+            pageContent = strings::Unquote(pageString->fValue);
           }
           u8string lineText;
           auto obj = props::ParseAsJson(pageContent);
