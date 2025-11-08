@@ -1368,7 +1368,14 @@ private:
           itemsB[*slot] = itemB;
         }
       }
-      if (std::ranges::any_of(itemsB, [](auto const &it) { if (auto count = Item::Count(*it); count) { return *count > 0; } else { return false; } })) {
+      bool empty = true;
+      for (auto const& it : itemsB) {
+        if (auto count = Item::Count(*it); count && *count > 0) {
+          empty = false;
+          break;
+        }
+      }
+      if (!empty) {
         tag->set(u8"Items", ListFrom<Tag::Type::Compound>(itemsB));
       }
     }
