@@ -1369,7 +1369,7 @@ private:
         }
       }
       bool empty = true;
-      for (auto const& it : itemsB) {
+      for (auto const &it : itemsB) {
         if (auto count = Item::Count(*it); count && *count > 0) {
           empty = false;
           break;
