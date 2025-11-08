@@ -99,7 +99,7 @@ jobs:
           cmake --build ./build --target je2be --parallel $(nproc)
       - name: Analyze
         run: |
-          pvs-studio-analyzer analyze -f ./build/compile_commands.json -j $(nproc) -e ./build/_deps -e ./test -e ./example
+          pvs-studio-analyzer analyze -f ./build/compile_commands.json --disableLicenseExpirationCheck -j $(nproc) -e ./build/_deps -e ./test -e ./example
       - name: Convert report
         run: |
           plog-converter --excludedCodes V1042 -t sarif -o pvs-report.sarif PVS-Studio.log
