@@ -48,8 +48,12 @@ public:
     if (auto components = itemJ.compoundTag(u8"components"); components) {
       if (auto n = components->string(u8"minecraft:custom_name"); n) {
         name = *n;
-      } else {
-        return nullopt;
+      } else if (auto n = components->compoundTag(u8"minecraft:custom_name"); n) {
+        if (auto text = n->string(u8"text"); text) {
+          return *text;
+        } else {
+          return nullopt;
+        }
       }
     } else if (auto tag = itemJ.compoundTag(u8"tag"); tag) {
       auto display = tag->compoundTag(u8"display");

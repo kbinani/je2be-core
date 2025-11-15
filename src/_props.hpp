@@ -4,6 +4,7 @@
 
 #include <je2be/uuid.hpp>
 
+#include "_java-data-versions.hpp"
 #include "_pos3.hpp"
 #include "_rotation.hpp"
 
@@ -297,6 +298,46 @@ static std::u8string GetTextComponent(std::u8string const &in) {
     return ret;
   } else {
     return strings::Unquote(in);
+  }
+}
+
+static inline std::optional<std::u8string> ParseJavaTextComponent(std::shared_ptr<Tag> const &input) {
+  using namespace std;
+  using namespace je2be::props;
+  optional<u8string> text;
+  if (auto s = dynamic_pointer_cast<StringTag>(input); s) {
+    text = s->fValue;
+  } else if (auto c = dynamic_pointer_cast<CompoundTag>(input); c) {
+    if (auto t = c->string(u8"text"); t) {
+      return *t;
+    } else {
+      return nullopt;
+    }
+  }
+  if (!text) {
+    return nullopt;
+  }
+  return GetTextComponent(*text);
+}
+
+static inline std::shared_ptr<Tag> CreateJavaTextComponent(std::u8string const &value, int outputDataVersion) {
+  if (outputDataVersion >= (int)JavaDataVersions::Snapshot25w02a) {
+    // 1.21.8
+    // 1.21.6
+    // 1.21.5
+    // 25w07a
+    // 25w04a
+    // 25w02a
+    auto com = Compound();
+    com->set(u8"text", String(value));
+    return com;
+  } else {
+    // 1.21.4
+    // 1.20.6
+    // 1.20
+    props::Json json;
+    props::SetJsonString(json, u8"text", value);
+    return String(props::StringFromJson(json));
   }
 }
 

@@ -1334,15 +1334,7 @@ public:
   static void CustomName(CompoundTag const &b, CompoundTag &j, Context &ctx, int dataVersion) {
     auto name = b.string(u8"CustomName");
     if (name) {
-      if (dataVersion >= (int)JavaDataVersions::Snapshot25w02a) {
-        auto com = Compound();
-        com->set(u8"text", String(*name));
-        j[u8"CustomName"] = com;
-      } else {
-        props::Json json;
-        props::SetJsonString(json, u8"text", *name);
-        j[u8"CustomName"] = String(props::StringFromJson(json));
-      }
+      j[u8"CustomName"] = props::CreateJavaTextComponent(*name, dataVersion);
     }
   }
 

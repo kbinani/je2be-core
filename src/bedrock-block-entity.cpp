@@ -60,9 +60,7 @@ public:
         if (!result->fTileEntity->string(u8"CustomName")) {
           auto customName = tag.string(u8"CustomName");
           if (customName) {
-            props::Json json;
-            props::SetJsonString(json, u8"text", *customName);
-            result->fTileEntity->set(u8"CustomName", props::StringFromJson(json));
+            result->fTileEntity->set(u8"CustomName", props::CreateJavaTextComponent(*customName, outputDataVersion));
           }
         }
       }
@@ -393,9 +391,7 @@ public:
 
     auto customName = tagB.string(u8"CustomName", u8"");
     if (!customName.empty()) {
-      props::Json json;
-      props::SetJsonString(json, u8"text", customName);
-      t->set(u8"CustomName", props::StringFromJson(json));
+      t->set(u8"CustomName", props::CreateJavaTextComponent(customName, opt.fOutputDataVersion));
     }
 
     Result r;
@@ -781,43 +777,22 @@ public:
     }
     for (size_t i = 0; i < 4; i++) {
       u8string line = i < linesB.size() ? linesB[i] : u8"";
-      if (outputDataVersion >= (int)JavaDataVersions::Snapshot25w02a) {
-        // 1.21.8
-        // 1.21.6
-        // 1.21.5
-        // 25w07a
-        // 25w04a
-        // 25w02a
-        auto text = Compound();
-        text->set(u8"text", String(line));
-        messagesJ->push_back(text);
-      } else {
-        // 1.21.4
-        // 1.20.6
-        // 1.20
-        if (line.empty()) {
-          messagesJ->push_back(String(u8R"({"text":""})"));
-        } else {
-          props::Json json;
-          props::SetJsonString(json, u8"text", line);
-          messagesJ->push_back(String(props::StringFromJson(json)));
-        }
-      }
+      messagesJ->push_back(props::CreateJavaTextComponent(line, outputDataVersion));
     }
     ret->set(u8"messages", messagesJ);
 
     return ret;
   }
 
-  static CompoundTagPtr SignTextEmpty() {
+  static CompoundTagPtr SignTextEmpty(int outputDataVersion) {
     auto ret = Compound();
     ret->set(u8"color", u8"black");
     ret->set(u8"has_glowing_text", Bool(false));
     auto messages = List<Tag::Type::String>();
-    messages->push_back(String(u8R"({"text":""})"));
-    messages->push_back(String(u8R"({"text":""})"));
-    messages->push_back(String(u8R"({"text":""})"));
-    messages->push_back(String(u8R"({"text":""})"));
+    messages->push_back(props::CreateJavaTextComponent(u8"", outputDataVersion));
+    messages->push_back(props::CreateJavaTextComponent(u8"", outputDataVersion));
+    messages->push_back(props::CreateJavaTextComponent(u8"", outputDataVersion));
+    messages->push_back(props::CreateJavaTextComponent(u8"", outputDataVersion));
     ret->set(u8"messages", messages);
     return ret;
   }
@@ -1127,13 +1102,13 @@ public:
           auto frontTextJ = SignText(*frontTextB, opt.fOutputDataVersion);
           te->set(u8"front_text", frontTextJ);
         } else {
-          te->set(u8"front_text", SignTextEmpty());
+          te->set(u8"front_text", SignTextEmpty(opt.fOutputDataVersion));
         }
         if (backTextB) {
           auto backTextJ = SignText(*backTextB, opt.fOutputDataVersion);
           te->set(u8"back_text", backTextJ);
         } else {
-          te->set(u8"back_text", SignTextEmpty());
+          te->set(u8"back_text", SignTextEmpty(opt.fOutputDataVersion));
         }
       } else {
         auto frontTextJ = Compound();
@@ -1150,14 +1125,12 @@ public:
         for (int i = 0; i < 4; i++) {
           u8string key = u8"Text" + mcfile::String::ToString(i + 1);
           u8string line = i < lines.size() ? lines[i] : u8"";
-          props::Json json;
-          props::SetJsonString(json, u8"text", line);
-          messagesJ->push_back(String(props::StringFromJson(json)));
+          messagesJ->push_back(props::CreateJavaTextComponent(line, opt.fOutputDataVersion));
         }
         frontTextJ->set(u8"messages", messagesJ);
 
         te->set(u8"front_text", frontTextJ);
-        te->set(u8"back_text", SignTextEmpty());
+        te->set(u8"back_text", SignTextEmpty(opt.fOutputDataVersion));
       }
 
       CopyBoolValues(tag, *te, {{u8"IsWaxed", u8"is_waxed"}});
@@ -1290,7 +1263,6 @@ public:
   static std::optional<Result> Null(Pos3i const &pos, mcfile::be::Block const &block, CompoundTag const &tagB, mcfile::je::Block const &blockJ, Context &ctx, Options const &opt) {
     return std::nullopt;
   }
-
 #pragma endregion
 
   static std::unordered_map<std::u8string_view, Converter> *CreateTable() {

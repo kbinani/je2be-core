@@ -1,5 +1,8 @@
 #pragma once
 
+#include "_java-data-versions.hpp"
+#include "_props.hpp"
+
 namespace je2be {
 namespace java {
 

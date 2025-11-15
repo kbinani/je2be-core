@@ -811,11 +811,9 @@ private:
         {u8"conditionMet", Bool(conditionMet)},
     });
     Attach(c, pos, *tag);
-    auto customNameJ = c->string(u8"CustomName");
-    if (customNameJ) {
-      auto text = props::GetTextComponent(*customNameJ);
-      if (!text.empty()) {
-        tag->set(u8"CustomName", text);
+    if (auto customNameJ = c->find(u8"CustomName"); customNameJ != c->end()) {
+      if (auto text = props::ParseJavaTextComponent(customNameJ->second); text) {
+        tag->set(u8"CustomName", String(*text));
       }
     }
     return tag;
@@ -1726,11 +1724,9 @@ private:
     tag.set(u8"z", Int(pos.fZ));
 
     if (c) {
-      auto customNameJ = c->string(u8"CustomName");
-      if (customNameJ) {
-        auto customNameB = props::GetTextComponent(*customNameJ);
-        if (!customNameB.empty()) {
-          tag.set(u8"CustomName", customNameB);
+      if (auto customNameJ = c->find(u8"CustomName"); customNameJ != c->end()) {
+        if (auto customNameB = props::ParseJavaTextComponent(customNameJ->second); customNameB) {
+          tag.set(u8"CustomName", String(*customNameB));
         }
       }
     }
@@ -1830,11 +1826,9 @@ private:
     ret->set(u8"z", Int(pos.fZ));
     ret->set(u8"isMovable", Bool(true));
 
-    auto customName = props::GetJson(tagJ, u8"CustomName");
-    if (customName) {
-      auto text = GetAsString(*customName, "text");
-      if (text) {
-        ret->set(u8"CustomName", *text);
+    if (auto customName = tagJ.find(u8"CustomName"); customName != tagJ.end()) {
+      if (auto text = props::ParseJavaTextComponent(customName->second); text) {
+        ret->set(u8"CustomName", String(*text));
       }
     }
     return ret;

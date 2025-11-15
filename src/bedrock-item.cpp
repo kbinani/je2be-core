@@ -144,9 +144,7 @@ public:
     if (displayB) {
       auto displayName = displayB->string(u8"Name");
       if (displayName) {
-        props::Json json;
-        props::SetJsonString(json, u8"text", *displayName);
-        java::AppendComponent(itemJ, u8"custom_name", String(props::StringFromJson(json)));
+        java::AppendComponent(itemJ, u8"custom_name", props::CreateJavaTextComponent(*displayName, dataVersion));
       }
 
       if (auto loreB = displayB->listTag(u8"Lore"); loreB) {
@@ -167,9 +165,7 @@ public:
     auto customName = tagB->string(u8"CustomName");
     auto customNameVisible = tagB->boolean(u8"CustomNameVisible", false);
     if (customName && customNameVisible) {
-      props::Json json;
-      props::SetJsonString(json, u8"text", *customName);
-      java::AppendComponent(itemJ, u8"custom_name", String(props::StringFromJson(json)));
+      java::AppendComponent(itemJ, u8"custom_name", props::CreateJavaTextComponent(*customName, dataVersion));
     }
 
     auto enchB = tagB->listTag(u8"ench");
@@ -1109,6 +1105,7 @@ public:
   }
 #pragma endregion
 
+#pragma region Utilities
   static std::optional<float> HealthFromBucketTag(CompoundTag const &tagB) {
     auto attributes = tagB.listTag(u8"Attributes");
     if (!attributes) {
@@ -1136,6 +1133,7 @@ public:
   static std::u8string Ns() {
     return u8"minecraft:";
   }
+#pragma endregion
 
   static std::unordered_map<std::u8string_view, Converter> *CreateTable() {
     using namespace std;
